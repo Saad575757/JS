@@ -15,7 +15,7 @@ const OtherLayout = ({
      <Suspense>{children}</Suspense> 
 
       <footer className="footer footer-alt fw-medium">
-        <span className="text-dark-emphasis">{currentYear} © Techmin - Theme by Techzaa</span>
+        <span className="text-dark-emphasis">{currentYear} © Xytek - Classroom by Xytek</span>
       </footer>
     </>;
 };

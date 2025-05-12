@@ -5,7 +5,7 @@ import logoDark from '@/assets/images/logo-dark.png';
 const AuthLogo = () => {
   return <div className="auth-brand p-4 text-center">
       <Link href="/" className="logo-light">
-        <Image src={logo} alt="logo" height={28} />
+        <Image src={logo} alt="logo" height={60} />
       </Link>
       <Link href="/" className="logo-dark">
         <Image src={logoDark} alt="dark logo" height={28} />
