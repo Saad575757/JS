@@ -6,7 +6,7 @@ const poppins = Poppins({
   weight: ['200', '300', '400', '500', '600', '700', '800'],
   display: 'swap'
 });
-import logoDarkFull from '@/assets/images/logo-dark.png';
+import logoDarkFull from '@/assets/images/logo-blue.png';
 import '@/assets/scss/app.scss';
 import NextTopLoader from 'nextjs-toploader';
 import AppProvidersWrapper from '@/components/wrappers/AppProvidersWrapper';

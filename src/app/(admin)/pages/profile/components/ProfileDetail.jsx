@@ -15,53 +15,45 @@ import Link from 'next/link';
 import { Button, Col, Nav, NavItem, NavLink, Row, TabContainer, TabContent, TabPane } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
-const About = () => {
-  return <div className="profile-desk">
-      <h5 className="text-uppercase fs-17 text-dark">Johnathan Deo</h5>
-      <div className="designation mb-3">PRODUCT DESIGNER (UX / UI / Visual Interaction)</div>
-      <p className="text-muted fs-16">
+
+const About = ({ userData }) => {
+  return (
+    <div className="profile-desk">
+      <h5 className="text-uppercase fs-17 text-dark">{userData.name || 'Johnathan Deo'}</h5>
+      <div className="designation mb-3">
+        {userData.role ? userData.role.toUpperCase() : 'PRODUCT DESIGNER (UX / UI / Visual Interaction)'}
+      </div>
+      {/* <p className="text-muted fs-16">
         I have 10 years of experience designing for the web, and specialize in the areas of user interface design, interaction design, visual design
-        and prototyping. I’ve worked with notable startups including Pearl Street Software.
-      </p>
+        and prototyping. I've worked with notable startups including Pearl Street Software.
+      </p> */}
       <h5 className="mt-4 fs-17 text-dark">Contact Information</h5>
       <table className="table table-condensed table-bordered mb-0 border-top table-striped">
         <tbody>
           <tr>
-            <th scope="row">Url</th>
-            <td>
-              <Link href="" className="ng-binding">
-                www.example.com
-              </Link>
-            </td>
-          </tr>
-          <tr>
             <th scope="row">Email</th>
             <td>
-              <Link href="" className="ng-binding">
-                jonathandeo@example.com
+              <Link href={`mailto:${userData.email || 'jonathandeo@example.com'}`}>
+                {userData.email || 'jonathandeo@example.com'}
               </Link>
             </td>
           </tr>
           <tr>
             <th scope="row">Phone</th>
-            <td className="ng-binding">(123)-456-7890</td>
-          </tr>
-          <tr>
-            <th scope="row">Skype</th>
-            <td>
-              <Link href="" className="ng-binding">
-                jonathandeo123
-              </Link>
-            </td>
+            <td>{userData.phone || '(123)-456-7890'}</td>
           </tr>
         </tbody>
       </table>
-    </div>;
+    </div>
+  );
 };
+
 const Activities = () => {
   const activityData = useFetchData(getActivityData);
-  return <div className="timeline-2">
-      {activityData?.map((activity, idx) => <div className="time-item" key={idx}>
+  return (
+    <div className="timeline-2">
+      {activityData?.map((activity, idx) => (
+        <div className="time-item" key={idx}>
           <div className="item-info ms-3 mb-3">
             <div className="text-muted">{timeSince(activity.time)}</div>
             <p>
@@ -70,62 +62,81 @@ const Activities = () => {
               </Link>
               {activity.title}
             </p>
-            {activity.images && activity.images.map((image, idx) => <Image src={image} alt="" height={40} width={60} className="rounded-1 me-1" key={idx} />)}
-            {activity.description && <p>
+            {activity.images && activity.images.map((image, idx) => (
+              <Image 
+                src={image} 
+                alt="" 
+                height={40} 
+                width={60} 
+                className="rounded-1 me-1" 
+                key={idx} 
+              />
+            ))}
+            {activity.description && (
+              <p>
                 <em>{activity.description}</em>
-              </p>}
+              </p>
+            )}
           </div>
-        </div>)}
-    </div>;
+        </div>
+      ))}
+    </div>
+  );
 };
-const Settings = () => {
+
+const Settings = ({ userData }) => {
   const settingSchema = yup.object({
     name: yup.string().required('Please enter your name'),
     email: yup.string().email('Please enter valid email').required('Please enter your email'),
+    phone: yup.string(),
     website: yup.string().required('Please enter your website url'),
     username: yup.string().required('Please enter your username'),
     password: yup.string().required('Please enter your password'),
-    rePassword: yup.string().required('Please confirm your password').oneOf([yup.ref('password')], 'Passwords must match'),
+    rePassword: yup.string()
+      .required('Please confirm your password')
+      .oneOf([yup.ref('password')], 'Passwords must match'),
     about: yup.string().required('Please enter your intro')
   });
+
   const {
     control,
     handleSubmit
   } = useForm({
     resolver: yupResolver(settingSchema),
     defaultValues: {
-      name: 'John Doe',
-      email: 'first.last@example.com',
+      name: userData.name || 'John Doe',
+      email: userData.email || 'first.last@example.com',
+      phone: userData.phone || '',
       website: 'Enter website url',
       username: 'john',
-      about: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.'
+      about: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit...'
     }
   });
-  return <div className="user-profile-content">
+
+  return (
+    <div className="user-profile-content">
       <form onSubmit={handleSubmit(() => {})}>
         <Row className="row-cols-sm-2 row-cols-1">
           <TextFormInput name="name" label="Full Name" control={control} containerClassName="mb-2" />
-
           <TextFormInput name="email" type="email" label="Email" control={control} containerClassName="mb-3" />
-
+          <TextFormInput name="phone" label="Phone" control={control} containerClassName="mb-3" />
           <TextFormInput name="website" label="Website" control={control} containerClassName="mb-3" />
-
           <TextFormInput name="username" label="Username" control={control} containerClassName="mb-3" />
-
           <PasswordFormInput name="password" label="Password" control={control} containerClassName="mb-3" placeholder="6 - 15 Characters" />
-
           <PasswordFormInput name="rePassword" label="Re-Password" control={control} containerClassName="mb-3" placeholder="6 - 15 Characters" />
-
           <TextAreaFormInput name="about" label="About Me" rows={5} control={control} containerClassName="col-sm-12 mb-3" />
         </Row>
         <Button variant="primary" type="submit">
           <IconifyIcon icon="mdi:content-save-outline" className="me-1 fs-16 lh-1" /> Save
         </Button>
       </form>
-    </div>;
+    </div>
+  );
 };
+
 const Projects = () => {
-  return <Row className="m-t-10">
+  return (
+    <Row className="m-t-10">
       <Col md={12}>
         <div className="table-responsive">
           <table className="table table-bordered mb-0 table-striped table-hover">
@@ -140,32 +151,39 @@ const Projects = () => {
               </tr>
             </thead>
             <tbody className="table-group-divider">
-              {projectData.map((project, idx) => <tr key={idx}>
+              {projectData.map((project, idx) => (
+                <tr key={idx}>
                   <td>{idx + 1}</td>
                   <td>{project.name}</td>
                   <td>{new Date(project.startDate).toLocaleDateString()}</td>
                   <td>{new Date(project.dueDate).toLocaleDateString()}</td>
                   <td>
-                    <span className={`badge bg-${getProjectStatusVariant(project.status)}`}>{project.status}</span>
+                    <span className={`badge bg-${getProjectStatusVariant(project.status)}`}>
+                      {project.status}
+                    </span>
                   </td>
                   <td>Techzaa</td>
-                </tr>)}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </Col>
-    </Row>;
+    </Row>
+  );
 };
-const ProfileDetail = () => {
-  return <div className="profile-content">
+
+const ProfileDetail = ({ userData = {} }) => {
+  return (
+    <div className="profile-content">
       <TabContainer defaultActiveKey={'about'}>
         <Nav as={'ul'} justify className="nav-pills gap-0 p-3 text-center" id="v-pills-tab" role="tablist" aria-orientation="vertical">
           <NavItem as="li" className="mt-2">
-            <NavLink eventKey="about" className="fs-5 p-2 ">
+            <NavLink eventKey="about" className="fs-5 p-2">
               About
             </NavLink>
           </NavItem>
-          <NavItem as="li" className="mt-2">
+          {/* <NavItem as="li" className="mt-2">
             <NavLink eventKey="activity" className="fs-5 p-2">
               Activities
             </NavLink>
@@ -179,23 +197,25 @@ const ProfileDetail = () => {
             <NavLink eventKey="project" className="fs-5 p-2">
               Projects
             </NavLink>
-          </NavItem>
+          </NavItem> */}
         </Nav>
-        <TabContent className="m-0 p-2 p-sm-4 " id="v-pills-tabContent">
+        <TabContent className="m-0 p-2 p-sm-4" id="v-pills-tabContent">
           <TabPane eventKey="about" id="aboutme" role="tabpanel" aria-labelledby="home-tab" tabIndex={0}>
-            <About />
+            <About userData={userData} />
           </TabPane>
           <TabPane eventKey="activity">
             <Activities />
           </TabPane>
           <TabPane eventKey="setting">
-            <Settings />
+            <Settings userData={userData} />
           </TabPane>
           <TabPane eventKey="project">
             <Projects />
           </TabPane>
         </TabContent>
       </TabContainer>
-    </div>;
+    </div>
+  );
 };
+
 export default ProfileDetail;

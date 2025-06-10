@@ -54,7 +54,8 @@ import { Card, Col, Container, Row, Form, Alert } from 'react-bootstrap';
 import Image from 'next/image';
 import AuthLogo from '@/components/AuthLogo';
 import authImg from '@/assets/images/ai-classroom.webp';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,30 +63,93 @@ const Login = () => {
   const [userRole, setUserRole] = useState('student');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  // Check for successful authentication on component mount
+  useEffect(() => {
+    console.log('[Login] Component mounted - checking for auth data in URL');
+    const urlParams = new URLSearchParams(window.location.search);
+    const authData = urlParams.get('authData');
+    
+    if (authData) {
+      console.log('[Login] Found authData in URL:', authData);
+      try {
+        const userData = JSON.parse(decodeURIComponent(authData));
+        console.log('[Login] Parsed user data:', userData);
+        saveUserData(userData);
+        console.log('[Login] Redirecting to dashboard...');
+      } catch (err) {
+        console.error('[Login] Error parsing auth data:', err);
+        setError('Failed to process authentication data');
+      }
+    } else {
+      console.log('[Login] No authData found in URL');
+    }
+
+    // Check existing localStorage data
+    const existingData = localStorage.getItem('userData');
+    if (existingData) {
+      console.log('[Login] Found existing user data in localStorage:', JSON.parse(existingData));
+    } else {
+      console.log('[Login] No user data found in localStorage');
+    }
+  }, [router]);
+
+  const saveUserData = (data) => {
+    console.log('[saveUserData] Saving user data:', data);
+    try {
+      const userData = {
+        role: userRole,
+        ...data, // This should include name, email, picture, etc.
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('userData', JSON.stringify(userData));
+      console.log('[saveUserData] Successfully saved to localStorage:', userData);
+    } catch (error) {
+      console.error('[saveUserData] Error saving user data:', error);
+    }
+  };
 
   const initiateGoogleLogin = async () => {
+    console.log('[initiateGoogleLogin] Starting Google login for role:', userRole);
     setLoading(true);
     setError(null);
 
     try {
-      // Call your API endpoint with GET method and role as query parameter
-      const response = await fetch(`https://class-assistant-orpin.vercel.app/api/auth/google?role=${userRole}`, {
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/google?role=${encodeURIComponent(userRole)}`;
+      console.log("process.env.NEXT_PUBLIC_API_BASE_URL", process.env.NEXT_PUBLIC_API_BASE_URL);
+      console.log('[initiateGoogleLogin] Calling API:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
+        redirect: 'manual',
       });
 
+      console.log('[initiateGoogleLogin] API response status:', response.status);
+
+      if (response.status === 302 || response.status === 301) {
+        const redirectUrl = response.headers.get('Location');
+        console.log('[initiateGoogleLogin] Redirecting to:', redirectUrl);
+        window.location.href = redirectUrl;
+        return;
+      }
+
       const data = await response.json();
+      console.log('[initiateGoogleLogin] API response data:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to initiate Google login');
       }
-
-      // Redirect to the Google OAuth URL
+      
+      console.log('[initiateGoogleLogin] Redirecting to Google OAuth:', data.url);
       window.location.href = data.url;
     } catch (err) {
-      setError(err.message);
+      console.error('[initiateGoogleLogin] Error:', err);
+      setError(err.message || 'An unknown error occurred');
       setLoading(false);
     }
   };
@@ -117,7 +181,10 @@ const Login = () => {
                             label="Student"
                             name="userRole"
                             checked={userRole === 'student'}
-                            onChange={() => setUserRole('student')}
+                            onChange={() => {
+                              console.log('[Role Change] Selected student role');
+                              setUserRole('student');
+                            }}
                           />
                           <Form.Check
                             type="radio"
@@ -125,7 +192,10 @@ const Login = () => {
                             label="Teacher"
                             name="userRole"
                             checked={userRole === 'teacher'}
-                            onChange={() => setUserRole('teacher')}
+                            onChange={() => {
+                              console.log('[Role Change] Selected teacher role');
+                              setUserRole('teacher');
+                            }}
                           />
                         </div>
                       </Form.Group>
@@ -143,7 +213,7 @@ const Login = () => {
                         ) : (
                           <>
                             <i className="fab fa-google"></i>
-                            Continue with Google as {userRole}
+                            Sign in as {userRole}
                           </>
                         )}
                       </button>
