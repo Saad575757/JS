@@ -54,9 +54,9 @@ const useSignIn = () => {
     setLoading(false);
   });
   return {
-    loading,
-    login,
-    control
+    // loading,
+    // login,
+    // control
   };
 };
 export default useSignIn;
