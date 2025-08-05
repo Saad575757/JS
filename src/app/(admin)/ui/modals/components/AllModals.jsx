@@ -6,7 +6,7 @@ import useToggle from '@/hooks/useToggle';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button, Col, Modal, ModalBody, ModalFooter, ModalHeader, ModalTitle, Row } from 'react-bootstrap';
-import darkLogo from '@/assets/images/logo-dark.png';
+import darkLogo from '@/assets/images/logo-blue.png';
 import logo from '@/assets/images/logo.png';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { toSentenceCase } from '@/utils/change-casing';

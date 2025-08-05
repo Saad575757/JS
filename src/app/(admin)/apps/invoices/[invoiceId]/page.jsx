@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { Button, Card, CardBody, Col, Row } from 'react-bootstrap';
-import logoDark from '@/assets/images/logo-dark.png';
+import logoDark from '@/assets/images/logo-blue.png';
 import { currency } from '@/context/constants';
 import InvoicePrintButton from './components/InvoicePrintButton';
 import { getInvoiceById } from '@/helpers/data';

@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import logo from '@/assets/images/logo.png';
 import logoSm from '@/assets/images/logo-sm.png';
-import logoDark from '@/assets/images/logo-dark.png';
+import logoDark from '@/assets/images/logo-blue.png';
 const LogoBox = () => {
   return <>
       <Link href="/" className="logo logo-light">

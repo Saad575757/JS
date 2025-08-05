@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '@/assets/images/logo.png';
-import logoDark from '@/assets/images/logo-dark.png';
+import logoDark from '@/assets/images/logo-blue.png';
 const AuthLogo = () => {
   return <div className="auth-brand p-4 text-center">
       <Link href="/" className="logo-light">
