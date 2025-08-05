@@ -39,7 +39,7 @@ const useSignIn = () => {
       password: values?.password
     }).then(res => {
       if (res?.ok) {
-        push(queryParams['redirectTo'] ?? '/dashboard');
+        // push(queryParams['redirectTo'] ?? '/dashboard');
         showNotification({
           message: 'Successfully logged in. Redirecting....',
           variant: 'success'
