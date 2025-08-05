@@ -197,6 +197,17 @@ const Login = () => {
                               setUserRole('teacher');
                             }}
                           />
+                          <Form.Check
+                            type="radio"
+                            id="super_admin-role"
+                            label="Super Admin"
+                            name="userRole"
+                            checked={userRole === 'super_admin'}
+                            onChange={() => {
+                              console.log('[Role Change] Selected Super admin role');
+                              setUserRole('super_admin');
+                            }}
+                          />
                         </div>
                       </Form.Group>
 

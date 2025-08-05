@@ -759,7 +759,7 @@ function CompanyInfoStep({
       <Card.Body>
         <Card.Title as="h1" className="mb-4">Company Information</Card.Title>
         <Card.Text className="text-muted mb-4">
-          Please provide the company's details.
+          Please provide the company&apos;s details.
         </Card.Text>
 
         <Form>

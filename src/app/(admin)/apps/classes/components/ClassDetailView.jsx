@@ -702,7 +702,7 @@ export default function ClassDetailView({ classId }) {
                         <IconifyIcon icon="mdi:account-group" width={48} className="text-muted" />
                       </div>
                       <h5>Add students to this class</h5>
-                      <p className="text-muted mb-3">You haven't added any students to this class yet</p>
+                      <p className="text-muted mb-3">You haven&apos;t added any students to this class yet</p>
                       <Button variant="primary" onClick={handleInviteClick}>Invite students</Button>
                     </CardBody>
                   </Card>
