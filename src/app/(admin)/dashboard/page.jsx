@@ -360,7 +360,7 @@ export default function ChatInput() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFtYW5AZXJwdGVjaG5pY2Fscy5jb20iLCJuYW1lIjoiQW1hbiBOYXF2aSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NLX1ZwNVk0U0RUYXZ3R2tFN05vSERzTEljLWh3cEdacTNsWHhaUmNBWl96aVFNZlE9czk2LWMiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJzdWIiOiIxMDg4NTMwNDI5ODQ3NjI3NjYzMTMiLCJpYXQiOjE3NTE5ODk1MjIsImV4cCI6MTc1MjU5NDMyMn0.MktOjDpa__qqQaTt1SLmyZtteXO2Ugd2mHFnIShxYwQ',
+          'Authorization': token ? `Bearer ${token}` : '',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -433,7 +433,7 @@ export default function ChatInput() {
     try {
       const res = await fetch(`https://classroom.googleapis.com/v1/userProfiles/${userId}`, {
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFtYW5AZXJwdGVjaG5pY2Fscy5jb20iLCJuYW1lIjoiQW1hbiBOYXF2aSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NLX1ZwNVk0U0RUYXZ3R2tFN05vSERzTEljLWh3cEdacTNsWHhaUmNBWl96aVFNZlE9czk2LWMiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJzdWIiOiIxMDg4NTMwNDI5ODQ3NjI3NjYzMTMiLCJpYXQiOjE3NTE5ODk1MjIsImV4cCI6MTc1MjU5NDMyMn0.MktOjDpa__qqQaTt1SLmyZtteXO2Ugd2mHFnIShxYwQ',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
       });
       if (!res.ok) throw new Error('Failed to fetch user profile');
@@ -981,7 +981,7 @@ export default function ChatInput() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFtYW5AZXJwdGVjaG5pY2Fscy5jb20iLCJuYW1lIjoiQW1hbiBOYXF2aSIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NLX1ZwNVk0U0RUYXZ3R2tFN05vSERzTEljLWh3cEdacTNsWHhaUmNBWl96aVFNZlE9czk2LWMiLCJyb2xlIjoic3VwZXJfYWRtaW4iLCJzdWIiOiIxMDg4NTMwNDI5ODQ3NjI3NjYzMTMiLCJpYXQiOjE3NTE5ODk1MjIsImV4cCI6MTc1MjU5NDMyMn0.MktOjDpa__qqQaTt1SLmyZtteXO2Ugd2mHFnIShxYwQ',
+            'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
