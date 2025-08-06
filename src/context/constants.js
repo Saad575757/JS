@@ -5,5 +5,5 @@ export const developedBy = 'Techzaa';
 export const contactUs = 'techzaastudio@gmail.com';
 export const buyLink = '';
 export const basePath = '';
-export const DEFAULT_PAGE_TITLE = 'Techmin | Bootstrap 5 Admin & Dashboard Template';
+export const DEFAULT_PAGE_TITLE = 'Xytek | Let Ai runs the classroom';
 export const colorVariants = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'pink', 'purple', 'light', 'dark', 'link'];
