@@ -14,7 +14,7 @@ const AuthProtectionWrapper = ({
     push
   } = useRouter();
   const pathname = usePathname();
-  if (status == 'unauthenticated') {
+  if (status == 'authenticated') {
     push(`/`);
     return <FallbackLoading />;
   }
