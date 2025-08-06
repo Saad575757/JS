@@ -78,6 +78,7 @@ export default function ClassDetailView({ classId }) {
         }
         const result = await response.json();
         setStudents(result.students || []);
+        console.log('Fetched students:', result.students || []);
       } catch (err) {
         setStudents([]);
       }
