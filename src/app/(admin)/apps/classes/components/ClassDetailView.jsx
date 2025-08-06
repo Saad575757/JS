@@ -482,48 +482,11 @@ export default function ClassDetailView({ classId }) {
                             </div>
                           </div>
                           <p>{announcement.text}</p>
-                          <div className="d-flex align-items-center">
-                            {announcement.alternateLink && (
-                              <a href={announcement.alternateLink} target="_blank" rel="noopener noreferrer" className="btn btn-link p-0 text-decoration-none me-3">
-                                <IconifyIcon icon="mdi:link-variant" className="me-1" />
-                                View in Google Classroom
-                              </a>
-                            )}
-                          </div>
+                          {/* Removed 'View in Google Classroom' button as requested */}
                         </CardBody>
                       </Card>
                     ))}
-                    
-                    {/* Create Announcement */}
-                    <Card className="border-0 shadow-sm">
-                      <CardBody>
-                        <h5>Announce something to your class</h5>
-                        <p className="text-muted mb-3">
-                          This is where you can talk to your class. Use the stream to share announcements, 
-                          post assignments, and respond to student questions.
-                        </p>
-                        <Form.Group className="mb-3">
-                          <Form.Control
-                            as="textarea"
-                            rows={3}
-                            placeholder="What would you like to announce?"
-                            value={announcementText}
-                            onChange={(e) => setAnnouncementText(e.target.value)}
-                          />
-                        </Form.Group>
-                        <div className="d-flex justify-content-between align-items-center">
-                          <Button 
-                            variant="primary" 
-                            size="sm"
-                            onClick={handleCreateAnnouncement}
-                            disabled={!announcementText.trim()}
-                          >
-                            Post
-                          </Button>
-                          <Button variant="outline-secondary" size="sm">Stream settings</Button>
-                        </div>
-                      </CardBody>
-                    </Card>
+
                   </Col>
                   
                   {/* Sidebar Column */}
