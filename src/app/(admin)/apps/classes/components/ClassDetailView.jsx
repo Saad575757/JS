@@ -677,33 +677,15 @@ export default function ClassDetailView({ classId }) {
                 <div>
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h4>Students</h4>
-                    <div>
-                      <Button variant="primary" size="sm" className="me-2">Add students</Button>
-                      <Button 
-                        variant="outline-secondary" 
-                        size="sm"
-                        onClick={handleInviteClick}
-                      >
-                        Invite students
-                      </Button>
-                    </div>
+                    
                   </div>
                   <div className="mb-4">
                     <InputGroup className="mb-3">
                       <FormControl
                         placeholder="Search for students"
                         aria-label="Search for students"
+                        // Add search logic if needed
                       />
-                      <Dropdown>
-                        <Dropdown.Toggle variant="outline-secondary" id="dropdown-filter">
-                          Filter
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item>All students</Dropdown.Item>
-                          <Dropdown.Item>Invited</Dropdown.Item>
-                          <Dropdown.Item>Active</Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
                     </InputGroup>
                   </div>
                   {students.length === 0 ? (
