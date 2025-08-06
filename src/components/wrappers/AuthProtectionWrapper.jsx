@@ -15,7 +15,7 @@ const AuthProtectionWrapper = ({
   } = useRouter();
   const pathname = usePathname();
   if (status == 'unauthenticated') {
-    push(`/dashboard`);
+    push(`/`);
     return <FallbackLoading />;
   }
   return <Suspense>{children}</Suspense>;
