@@ -64,23 +64,30 @@ export default function ClassDetailView({ classId }) {
     const fetchStudents = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/enrolled-students`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Bearer ${token}`);
+
+        const requestOptions = {
+          method: 'GET',
+          headers: myHeaders,
+          redirect: 'follow'
+        };
+
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/enrolled-students`;
+        console.log('Fetch students URL:', url);
+        console.log('Fetch students token:', token);
+        const response = await fetch(url, requestOptions);
+        const text = await response.text();
+        console.log('Raw students response:', text);
+        try {
+          const result = JSON.parse(text);
+          setStudents(result.students || []);
+        } catch (e) {
+          setStudents([]);
         }
-        const result = await response.json();
-        setStudents(result.students || []);
-        console.log('Fetched students:', result.students || []);
       } catch (err) {
         setStudents([]);
+        console.error('Fetch students error:', err);
       }
     };
     fetchStudents();
