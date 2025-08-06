@@ -57,35 +57,33 @@ export default function ClassDetailView({ classId }) {
     }
   ]);
 
-  const [grades, setGrades] = useState([
-    {
-      studentId: 1,
-      name: 'Ali Khan',
-      assignments: [
-        { id: 1, title: 'Introduction to React', score: 95, max: 100 },
-        { id: 2, title: 'State Management', score: 88, max: 100 }
-      ],
-      overall: 91.5
-    },
-    {
-      studentId: 2,
-      name: 'Sara Ahmed',
-      assignments: [
-        { id: 1, title: 'Introduction to React', score: 100, max: 100 },
-        { id: 2, title: 'State Management', score: 92, max: 100 }
-      ],
-      overall: 96.0
-    },
-    {
-      studentId: 3,
-      name: 'Usman Malik',
-      assignments: [
-        { id: 1, title: 'Introduction to React', score: 78, max: 100 },
-        { id: 2, title: 'State Management', score: 85, max: 100 }
-      ],
-      overall: 81.5
-    }
-  ]);
+  const [grades, setGrades] = useState([]);
+  const [students, setStudents] = useState([]);
+  // Fetch students data
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/enrolled-students`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        setStudents(result.students || []);
+      } catch (err) {
+        setStudents([]);
+      }
+    };
+    fetchStudents();
+  }, [classId]);
 
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [newAssignment, setNewAssignment] = useState({
@@ -676,7 +674,6 @@ export default function ClassDetailView({ classId }) {
                       </Button>
                     </div>
                   </div>
-                  
                   <div className="mb-4">
                     <InputGroup className="mb-3">
                       <FormControl
@@ -695,17 +692,34 @@ export default function ClassDetailView({ classId }) {
                       </Dropdown>
                     </InputGroup>
                   </div>
-                  
-                  <Card className="border">
-                    <CardBody className="text-center py-5">
-                      <div className="mb-3">
-                        <IconifyIcon icon="mdi:account-group" width={48} className="text-muted" />
-                      </div>
-                      <h5>Add students to this class</h5>
-                      <p className="text-muted mb-3">You haven&apos;t added any students to this class yet</p>
-                      <Button variant="primary" onClick={handleInviteClick}>Invite students</Button>
-                    </CardBody>
-                  </Card>
+                  {students.length === 0 ? (
+                    <Card className="border">
+                      <CardBody className="text-center py-5">
+                        <div className="mb-3">
+                          <IconifyIcon icon="mdi:account-group" width={48} className="text-muted" />
+                        </div>
+                        <h5>No students found</h5>
+                        <p className="text-muted mb-3">You haven&apos;t added any students to this class yet</p>
+                        <Button variant="primary" onClick={handleInviteClick}>Invite students</Button>
+                      </CardBody>
+                    </Card>
+                  ) : (
+                    <ListGroup>
+                      {students.map((student) => (
+                        <ListGroupItem key={student.id || student.studentId} className="d-flex align-items-center">
+                          <div className="me-3">
+                            <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
+                              {student.name ? student.name.split(' ').map(n => n[0]).join('') : 'ST'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="fw-bold">{student.name || student.email}</div>
+                            <div className="text-muted small">{student.email}</div>
+                          </div>
+                        </ListGroupItem>
+                      ))}
+                    </ListGroup>
+                  )}
                 </div>
               </Tab.Pane>
               

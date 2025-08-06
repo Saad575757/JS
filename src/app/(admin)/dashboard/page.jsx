@@ -458,49 +458,8 @@ export default function ChatInput() {
   }, [messages, fetchUserName, userNames]);
 
   const renderBotResponse = (msg) => {
-    // Show any {message: ...} response from backend as a bot message
+    // Show any {message: ...} response from backend as a bot message (no input field)
     if (msg.data && typeof msg.data === 'object' && msg.data.message && !msg.data.response) {
-      // If the message asks for a name (contains 'provide name' or similar), show a form, else just show the message
-      const lowerMsg = msg.data.message.toLowerCase();
-      if (lowerMsg.includes('provide one') || lowerMsg.includes('enter name') || lowerMsg.includes('course name')) {
-        return (
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <Badge bg="warning" className="me-2">Input Required</Badge>
-              {msg.data.message}<br />
-              <Form className="mt-2" onSubmit={(e) => {
-                e.preventDefault();
-                const inputValue = e.target.elements.inputValue.value.trim();
-                if (inputValue) {
-                  setMessage(inputValue);
-                  setTimeout(() => {
-                    const fakeEvent = { preventDefault: () => {} };
-                    handleSubmit(fakeEvent);
-                  }, 50);
-                }
-              }}>
-                <InputGroup>
-                  <Form.Control name="inputValue" placeholder="Enter value..." required />
-                  <Button type="submit" variant="primary">Submit</Button>
-                </InputGroup>
-              </Form>
-            </div>
-            <Button 
-              variant="link" 
-              size="sm" 
-              onClick={() => toggleSpeech(msg.data.message)}
-              className="p-0 ms-2"
-              title={isSpeaking ? 'Stop speech' : 'Read aloud'}
-            >
-              <IconifyIcon 
-                icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'} 
-                width={16} 
-              />
-            </Button>
-          </div>
-        );
-      }
-      // Otherwise, just show the message as a bot message
       return (
         <div className="d-flex justify-content-between align-items-start">
           <div>{msg.data.message}</div>
