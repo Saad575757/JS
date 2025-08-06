@@ -81,7 +81,13 @@ export default function ClassDetailView({ classId }) {
         console.log('Raw students response:', text);
         try {
           const result = JSON.parse(text);
-          setStudents(result.students || []);
+          if (Array.isArray(result)) {
+            setStudents(result);
+          } else if (result && Array.isArray(result.students)) {
+            setStudents(result.students);
+          } else {
+            setStudents([]);
+          }
         } catch (e) {
           setStudents([]);
         }
