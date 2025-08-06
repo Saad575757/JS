@@ -108,13 +108,14 @@ export default function ClassDetailView({ classId }) {
     topic: ''
   });
 
-  // Fetch class data on component mount
+  // Fetch class data and announcements on component mount
   useEffect(() => {
     const fetchClassData = async () => {
       try {
         const token = localStorage.getItem('token');
+        // Fetch class data
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`, 
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -122,38 +123,41 @@ export default function ClassDetailView({ classId }) {
             }
           }
         );
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const result = await response.json();
         setClassData(result);
-        
-        // Mock announcements data
-        setAnnouncements([
+
+        // Fetch announcements
+        const annRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/announcements`,
           {
-            id: 1,
-            author: 'Saad khan',
-            content: 'Welcome to our class! Please introduce yourself in the comments.',
-            date: '2 days ago',
-            comments: 5
-          },
-          {
-            id: 2,
-            author: 'Saad khan',
-            content: 'First assignment will be posted tomorrow. Please check the Classwork tab.',
-            date: '1 week ago',
-            comments: 2
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           }
-        ]);
+        );
+        if (annRes.ok) {
+          const annData = await annRes.json();
+          // Support both array and object with announcements property
+          if (Array.isArray(annData)) {
+            setAnnouncements(annData);
+          } else if (annData && Array.isArray(annData.announcements)) {
+            setAnnouncements(annData.announcements);
+          } else {
+            setAnnouncements([]);
+          }
+        } else {
+          setAnnouncements([]);
+        }
       } catch (err) {
         setError(err.message || 'Failed to load class data');
       } finally {
         setLoading(false);
       }
     };
-
     fetchClassData();
   }, [classId]);
 
@@ -469,24 +473,22 @@ export default function ClassDetailView({ classId }) {
                           <div className="d-flex mb-3">
                             <div className="me-3">
                               <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
-                                {announcement.author.split(' ').map(n => n[0]).join('')}
+                                {announcement.creatorUserId ? announcement.creatorUserId.slice(-2).toUpperCase() : 'AN'}
                               </div>
                             </div>
                             <div>
-                              <div className="fw-bold">{announcement.author}</div>
-                              <div className="text-muted small">{announcement.date}</div>
+                              <div className="fw-bold">{announcement.creatorUserId || 'Unknown'}</div>
+                              <div className="text-muted small">{announcement.creationTime ? new Date(announcement.creationTime).toLocaleString() : ''}</div>
                             </div>
                           </div>
-                          <p>{announcement.content}</p>
+                          <p>{announcement.text}</p>
                           <div className="d-flex align-items-center">
-                            <Button variant="link" className="p-0 text-decoration-none me-3">
-                              <IconifyIcon icon="mdi:comment-outline" className="me-1" />
-                              {announcement.comments} comments
-                            </Button>
-                            <Button variant="link" className="p-0 text-decoration-none">
-                              <IconifyIcon icon="mdi:share-outline" className="me-1" />
-                              Share
-                            </Button>
+                            {announcement.alternateLink && (
+                              <a href={announcement.alternateLink} target="_blank" rel="noopener noreferrer" className="btn btn-link p-0 text-decoration-none me-3">
+                                <IconifyIcon icon="mdi:link-variant" className="me-1" />
+                                View in Google Classroom
+                              </a>
+                            )}
                           </div>
                         </CardBody>
                       </Card>
@@ -679,15 +681,7 @@ export default function ClassDetailView({ classId }) {
                     <h4>Students</h4>
                     
                   </div>
-                  <div className="mb-4">
-                    <InputGroup className="mb-3">
-                      <FormControl
-                        placeholder="Search for students"
-                        aria-label="Search for students"
-                        // Add search logic if needed
-                      />
-                    </InputGroup>
-                  </div>
+                  {/* No search field for students as requested */}
                   {students.length === 0 ? (
                     <Card className="border">
                       <CardBody className="text-center py-5">
