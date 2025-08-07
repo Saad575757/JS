@@ -73,7 +73,7 @@ export default function ClassDetailView({ classId }) {
           redirect: 'follow'
         };
 
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/enrolled-students`;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/enrolled-students`;
         console.log('Fetch students URL:', url);
         console.log('Fetch students token:', token);
         const response = await fetch(url, requestOptions);
@@ -115,7 +115,7 @@ export default function ClassDetailView({ classId }) {
         const token = localStorage.getItem('token');
         // Fetch class data
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -131,7 +131,7 @@ export default function ClassDetailView({ classId }) {
 
         // Fetch announcements
         const annRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/announcements`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/announcements`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
