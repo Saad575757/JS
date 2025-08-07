@@ -23,39 +23,39 @@ export default function ClassDetailView({ classId }) {
   const [emailError, setEmailError] = useState('');
   const router = useRouter();
 
-  // Mock data for assignments and grades
-  const [assignments, setAssignments] = useState([
-    {
-      id: 1,
-      title: 'Introduction to React',
-      dueDate: '2023-11-15',
-      points: 100,
-      submitted: 15,
-      totalStudents: 20,
-      status: 'active',
-      description: 'Create a simple React component that displays your name and a short bio.'
-    },
-    {
-      id: 2,
-      title: 'State Management',
-      dueDate: '2023-11-22',
-      points: 100,
-      submitted: 8,
-      totalStudents: 20,
-      status: 'active',
-      description: 'Implement a counter using useState and useEffect hooks.'
-    },
-    {
-      id: 3,
-      title: 'Final Project',
-      dueDate: '2023-12-10',
-      points: 200,
-      submitted: 0,
-      totalStudents: 20,
-      status: 'draft',
-      description: 'Build a complete React application with at least 3 components.'
-    }
-  ]);
+  // Assignments state (fetched from API)
+  const [assignments, setAssignments] = useState([]);
+
+  // Fetch assignments data
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/assignments`;
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setAssignments(data);
+        } else if (data && Array.isArray(data.assignments)) {
+          setAssignments(data.assignments);
+        } else {
+          setAssignments([]);
+        }
+      } catch (err) {
+        setAssignments([]);
+        console.error('Fetch assignments error:', err);
+      }
+    };
+    fetchAssignments();
+  }, [classId]);
 
   const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
