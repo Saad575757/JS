@@ -71,6 +71,37 @@ export default function ClassDetailView({ classId }) {
   }, [classId]);
 
   const [grades, setGrades] = useState([]);
+
+  // Fetch grades data
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/grades`;
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setGrades(data);
+        } else if (data && Array.isArray(data.grades)) {
+          setGrades(data.grades);
+        } else {
+          setGrades([]);
+        }
+      } catch (err) {
+        setGrades([]);
+        console.error('Fetch grades error:', err);
+      }
+    };
+    fetchGrades();
+  }, [classId]);
   const [students, setStudents] = useState([]);
   // Fetch students data
   useEffect(() => {
@@ -684,74 +715,33 @@ export default function ClassDetailView({ classId }) {
               <Tab.Pane eventKey="grades" className="p-4">
                 <div className="d-flex justify-content-between align-items-center mb-4">
                   <h4>Grades</h4>
-                  <div>
-                    <Button variant="outline-secondary" size="sm" className="me-2">
-                      <IconifyIcon icon="mdi:download" className="me-1" />
-                      Export
-                    </Button>
-                    <Button variant="primary" size="sm">
-                      <IconifyIcon icon="mdi:cog" className="me-1" />
-                      Settings
-                    </Button>
-                  </div>
                 </div>
-                
                 <Card className="mb-4 border-0 shadow-sm">
                   <CardBody>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h5>Grade Summary</h5>
-                      <Dropdown>
-                        <Dropdown.Toggle variant="outline-secondary" size="sm">
-                          All assignments
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          {assignments.map(assignment => (
-                            <Dropdown.Item key={assignment.id}>{assignment.title}</Dropdown.Item>
-                          ))}
-                        </Dropdown.Menu>
-                      </Dropdown>
                     </div>
-                    
                     <Table hover responsive>
                       <thead>
                         <tr>
-                          <th>Student</th>
-                          {assignments.filter(a => a.status !== 'draft').map(assignment => (
-                            <th key={assignment.id}>{assignment.title}</th>
-                          ))}
-                          <th>Overall</th>
+                          <th>Student ID</th>
+                          <th>Assignment</th>
+                          <th>Grade</th>
+                          <th>Max Points</th>
+                          <th>Status</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {grades.map(student => (
-                          <tr key={student.studentId}>
-                            <td className="fw-bold">{student.name}</td>
-                            {assignments.filter(a => a.status !== 'draft').map(assignment => {
-                              const studentAssignment = student.assignments.find(a => a.id === assignment.id);
-                              return (
-                                <td key={assignment.id}>
-                                  {studentAssignment ? (
-                                    <div>
-                                      {studentAssignment.score}/{studentAssignment.max}
-                                      <ProgressBar 
-                                        now={(studentAssignment.score / studentAssignment.max) * 100} 
-                                        variant={studentAssignment.score >= 90 ? 'success' : studentAssignment.score >= 70 ? 'warning' : 'danger'}
-                                        style={{height: '5px'}} 
-                                        className="mt-1" 
-                                      />
-                                    </div>
-                                  ) : '-'}
-                                </td>
-                              );
-                            })}
-                            <td className="fw-bold">
-                              {student.overall}%
-                              <ProgressBar 
-                                now={student.overall} 
-                                variant={student.overall >= 90 ? 'success' : student.overall >= 70 ? 'warning' : 'danger'}
-                                style={{height: '5px'}} 
-                                className="mt-1" 
-                              />
+                        {grades.map((grade, idx) => (
+                          <tr key={idx}>
+                            <td>{grade.studentId}</td>
+                            <td>{grade.assignmentTitle}</td>
+                            <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
+                            <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
+                            <td>
+                              <Badge bg={grade.state === 'RETURNED' ? 'success' : grade.state === 'TURNED_IN' ? 'info' : 'secondary'}>
+                                {grade.state}
+                              </Badge>
                             </td>
                           </tr>
                         ))}
