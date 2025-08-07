@@ -42,10 +42,23 @@ export default function ClassDetailView({ classId }) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        // Process dueDate and dueTime into a JS Date object (dueDateTime)
+        const processAssignments = (arr) => arr.map(a => ({
+          ...a,
+          dueDateTime: a.dueDate && a.dueTime
+            ? new Date(
+                a.dueDate.year,
+                a.dueDate.month - 1,
+                a.dueDate.day,
+                a.dueTime.hours,
+                a.dueTime.minutes
+              )
+            : null
+        }));
         if (Array.isArray(data)) {
-          setAssignments(data);
+          setAssignments(processAssignments(data));
         } else if (data && Array.isArray(data.assignments)) {
-          setAssignments(data.assignments);
+          setAssignments(processAssignments(data.assignments));
         } else {
           setAssignments([]);
         }
