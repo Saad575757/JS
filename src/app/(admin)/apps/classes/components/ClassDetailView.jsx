@@ -561,52 +561,43 @@ export default function ClassDetailView({ classId }) {
                   <CardBody>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h5>Assignments</h5>
-                      <Dropdown>
-                        <Dropdown.Toggle variant="outline-secondary" size="sm">
-                          Filter: All topics
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                          <Dropdown.Item>All topics</Dropdown.Item>
-                          <Dropdown.Item>React Basics</Dropdown.Item>
-                          <Dropdown.Item>State Management</Dropdown.Item>
-                          <Dropdown.Item>Component Lifecycle</Dropdown.Item>
-                        </Dropdown.Menu>
-                      </Dropdown>
                     </div>
-                    
                     <Table hover responsive>
                       <thead>
                         <tr>
                           <th>Title</th>
                           <th>Due Date</th>
-                          <th>Points</th>
+                          <th>Max Points</th>
                           <th>Status</th>
-                          <th>Submissions</th>
+                          <th>Materials</th>
                         </tr>
                       </thead>
                       <tbody>
                         {assignments.map(assignment => (
-                          <tr key={assignment.id} onClick={() => {}} style={{cursor: 'pointer'}}>
+                          <tr key={assignment.id} style={{cursor: 'pointer'}}>
                             <td>
                               <div className="fw-bold">{assignment.title}</div>
-                              <small className="text-muted">{assignment.description.substring(0, 50)}...</small>
+                              <small className="text-muted">{assignment.description ? assignment.description.substring(0, 50) + (assignment.description.length > 50 ? '...' : '') : ''}</small>
                             </td>
-                            <td>{new Date(assignment.dueDate).toLocaleDateString()}</td>
-                            <td>{assignment.points}</td>
                             <td>
-                              <Badge bg={assignment.status === 'draft' ? 'secondary' : 'success'}>
-                                {assignment.status}
+                              {assignment.dueDateTime
+                                ? assignment.dueDateTime.toLocaleString()
+                                : assignment.dueDate && assignment.dueDate.year
+                                  ? `${assignment.dueDate.year}-${String(assignment.dueDate.month).padStart(2, '0')}-${String(assignment.dueDate.day).padStart(2, '0')}`
+                                  : '—'}
+                            </td>
+                            <td>{assignment.maxPoints !== undefined ? assignment.maxPoints : '—'}</td>
+                            <td>
+                              <Badge bg={assignment.state === 'PUBLISHED' ? 'success' : 'secondary'}>
+                                {assignment.state}
                               </Badge>
                             </td>
                             <td>
-                              <div className="d-flex align-items-center">
-                                <ProgressBar 
-                                  now={(assignment.submitted / assignment.totalStudents) * 100} 
-                                  style={{width: '100px', height: '8px'}} 
-                                  className="me-2" 
-                                />
-                                <small>{assignment.submitted}/{assignment.totalStudents}</small>
-                              </div>
+                              {assignment.materials && assignment.materials.length > 0 && assignment.materials[0].driveFile && assignment.materials[0].driveFile.driveFile ? (
+                                <a href={assignment.materials[0].driveFile.driveFile.alternateLink} target="_blank" rel="noopener noreferrer">
+                                  {assignment.materials[0].driveFile.driveFile.title}
+                                </a>
+                              ) : '—'}
                             </td>
                           </tr>
                         ))}
