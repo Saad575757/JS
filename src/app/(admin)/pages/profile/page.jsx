@@ -25,23 +25,29 @@ const Profile = () => {
       try {
         const storedUserData = localStorage.getItem('userData');
         const storedTeacherData = localStorage.getItem('teacherData');
-        
+        let data = { ...userData };
         if (storedUserData) {
           const parsedData = JSON.parse(storedUserData);
-          setUserData(prev => ({ ...prev, ...parsedData }));
+          data = { ...data, ...parsedData };
         }
-
         if (storedTeacherData) {
           const parsedTeacherData = JSON.parse(storedTeacherData);
-          setUserData(prev => ({ ...prev, ...parsedTeacherData }));
+          data = { ...data, ...parsedTeacherData };
         }
+        // Fallback to localStorage values from URL extraction if not present
+        data.name = data.name || localStorage.getItem('name') || '';
+        data.email = data.email || localStorage.getItem('email') || '';
+        data.picture = data.picture || localStorage.getItem('picture') || '';
+        data.role = data.role || localStorage.getItem('role') || '';
+        setUserData(data);
+        // Console log the extracted data
+        console.log('Profile userData:', data);
       } catch (error) {
         console.error('Error loading data from localStorage:', error);
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
 

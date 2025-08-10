@@ -193,6 +193,14 @@ export default function ChatInput() {
       if (name) localStorage.setItem('name', name);
       if (email) localStorage.setItem('email', email);
       if (picture) localStorage.setItem('picture', picture);
+      // Console log the values for debugging
+      console.log('Dashboard extracted values:', {
+        token: token || localStorage.getItem('token'),
+        role: role || localStorage.getItem('role'),
+        name: name || localStorage.getItem('name'),
+        email: email || localStorage.getItem('email'),
+        picture: picture || localStorage.getItem('picture'),
+      });
     }
   }, []);
 
