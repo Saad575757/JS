@@ -178,14 +178,21 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
 }
 
 export default function ChatInput() {
-  // Extract token from URL and save to localStorage if present
+  // Extract token, role, name, email, picture from URL and save to localStorage if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
-      const token = url.searchParams.get('token');
-      if (token) {
-        localStorage.setItem('token', token);
-      }
+      const params = url.searchParams;
+      const token = params.get('token');
+      const role = params.get('role');
+      const name = params.get('name');
+      const email = params.get('email');
+      const picture = params.get('picture');
+      if (token) localStorage.setItem('token', token);
+      if (role) localStorage.setItem('role', role);
+      if (name) localStorage.setItem('name', name);
+      if (email) localStorage.setItem('email', email);
+      if (picture) localStorage.setItem('picture', picture);
     }
   }, []);
 
