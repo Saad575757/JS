@@ -18,24 +18,40 @@ const ProfileDropdown = () => {
   });
 
   useEffect(() => {
-    // Get user data from localStorage
+    // Get user data from localStorage and fallback to URL-extracted values
     const storedData = localStorage.getItem('userData');
-    console.log('Stored user data:', localStorage.getItem('userData'));
-    console.log('Stored token:', localStorage.getItem('token'));
+    const nameFromStorage = localStorage.getItem('name');
+    const pictureFromStorage = localStorage.getItem('picture');
+    const emailFromStorage = localStorage.getItem('email');
+    const tokenFromStorage = localStorage.getItem('token');
+    let name = '';
+    let email = '';
+    let picture = '';
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
-        setUserData({
-          name: parsedData.name || 'User',
-          email: parsedData.email || '',
-          picture: parsedData.picture || '',
-          token: localStorage.getItem('token') || '',
-        });
-        console.log('User data loaded from localStorage:', userData);
+        name = parsedData.name || nameFromStorage || 'User';
+        email = parsedData.email || emailFromStorage || '';
+        picture = parsedData.picture || pictureFromStorage || '';
       } catch (error) {
+        name = nameFromStorage || 'User';
+        email = emailFromStorage || '';
+        picture = pictureFromStorage || '';
         console.error('Error parsing user data:', error);
       }
+    } else {
+      name = nameFromStorage || 'User';
+      email = emailFromStorage || '';
+      picture = pictureFromStorage || '';
     }
+    setUserData({
+      name,
+      email,
+      picture,
+      token: tokenFromStorage || '',
+    });
+    // Log for debug
+    console.log('ProfileDropdown userData:', { name, email, picture, token: tokenFromStorage });
   }, []);
 
   const handleLogout = () => {
