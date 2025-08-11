@@ -420,12 +420,18 @@ export default function WizardPage() {
     const urlRole = searchParams.get('role');
     const urlPicture = searchParams.get('picture');
 
-    // Save role and picture in localStorage for header/profile usage
+    // Save role, picture, name, and email in localStorage for header/profile usage
     if (urlRole) {
       localStorage.setItem('role', urlRole);
     }
     if (urlPicture) {
       localStorage.setItem('picture', urlPicture);
+    }
+    if (urlName) {
+      localStorage.setItem('name', decodeURIComponent(urlName));
+    }
+    if (urlEmail) {
+      localStorage.setItem('email', decodeURIComponent(urlEmail));
     }
 
     // Only allow teachers to use wizard, others redirect to dashboard
