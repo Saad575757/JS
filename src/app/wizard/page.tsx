@@ -420,31 +420,39 @@ export default function WizardPage() {
     const urlRole = searchParams.get('role');
     const urlPicture = searchParams.get('picture');
 
-    if (urlToken) {
-      setToken(urlToken);
-      localStorage.setItem('token', urlToken);
+    // Save role and picture in localStorage for header/profile usage
+    if (urlRole) {
+      localStorage.setItem('role', urlRole);
     }
-    
-    if (urlTeacherId) {
-      setTeacherId(urlTeacherId);
-      localStorage.setItem('teacherId', urlTeacherId);
+    if (urlPicture) {
+      localStorage.setItem('picture', urlPicture);
     }
 
-    // Set teacher data from URL params
-    const newTeacherData = {
-      name: urlName ? decodeURIComponent(urlName) : '',
-      email: urlEmail ? decodeURIComponent(urlEmail) : '',
-      phone: ''
-    };
-
-    setTeacherData(newTeacherData);
-    localStorage.setItem('teacherData', JSON.stringify(newTeacherData));
-
-    // Verify role is teacher
+    // Only allow teachers to use wizard, others redirect to dashboard
     if (urlRole && urlRole !== 'teacher') {
       setError('Only teachers can access this page');
-      // Optionally redirect non-teachers
-      // router.push('/unauthorized');
+      router.push('/dashboard');
+      return;
+    }
+
+    // If teacher, extract and save wizard URL data
+    if (urlRole === 'teacher') {
+      if (urlToken) {
+        setToken(urlToken);
+        localStorage.setItem('token', urlToken);
+      }
+      if (urlTeacherId) {
+        setTeacherId(urlTeacherId);
+        localStorage.setItem('teacherId', urlTeacherId);
+      }
+      // Set teacher data from URL params
+      const newTeacherData = {
+        name: urlName ? decodeURIComponent(urlName) : '',
+        email: urlEmail ? decodeURIComponent(urlEmail) : '',
+        phone: ''
+      };
+      setTeacherData(newTeacherData);
+      localStorage.setItem('teacherData', JSON.stringify(newTeacherData));
     }
   }, [searchParams, router]);
 
