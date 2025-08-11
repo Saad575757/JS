@@ -4,10 +4,16 @@ import {
   Button, Modal, Form, Row, Col, FloatingLabel,
   Alert, Dropdown, Badge, Pagination 
 } from 'react-bootstrap';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
-export default function ClassListView({ classes, refreshClasses, onClassClick, role }) {
+export default function ClassListView({ classes, refreshClasses, onClassClick }) {
+  const [isStudent, setIsStudent] = useState(false);
+
+  useEffect(() => {
+    const userRole = localStorage.getItem('role');
+    setIsStudent(userRole === 'student');
+  }, []);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -211,7 +217,7 @@ export default function ClassListView({ classes, refreshClasses, onClassClick, r
               >
                 <CardHeader className="d-flex justify-content-between align-items-center">
                   <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                  {role !== 'student' && (
+                  {!isStudent && (
                     <Dropdown onClick={(e) => e.stopPropagation()}>
                       <Dropdown.Toggle 
                         variant="link" 
@@ -278,7 +284,7 @@ export default function ClassListView({ classes, refreshClasses, onClassClick, r
         </div>
       )}
 
-      {role !== 'student' && (
+      {!isStudent && (
         <Button 
           variant="primary" 
           className="position-fixed rounded-circle p-0 d-flex align-items-center justify-content-center" 
