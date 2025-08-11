@@ -55,12 +55,12 @@ const ProfileDropdown = () => {
   }, []);
 
   const handleLogout = () => {
-    // Clear localStorage items
-    localStorage.removeItem('token');
-    localStorage.removeItem('teacherId');
-    localStorage.removeItem('userData');
-    // Sign out
-    signOut({ redirect: false });
+    // Clear all localStorage data
+    localStorage.clear();
+    // Sign out and redirect to /auth/login
+    signOut({ redirect: false }).then(() => {
+      window.location.href = '/auth/login';
+    });
   };
 
   return (
