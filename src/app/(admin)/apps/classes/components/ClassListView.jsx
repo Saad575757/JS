@@ -7,7 +7,7 @@ import {
 import { useState } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
-export default function ClassListView({ classes, refreshClasses, onClassClick }) {
+export default function ClassListView({ classes, refreshClasses, onClassClick, role }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -211,32 +211,33 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
               >
                 <CardHeader className="d-flex justify-content-between align-items-center">
                   <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                  <Dropdown onClick={(e) => e.stopPropagation()}>
-                    <Dropdown.Toggle 
-                      variant="link" 
-                      id={`dropdown-${classId}`}
-                      className="text-dark p-0 shadow-none"
-                    >
-                      
-                    </Dropdown.Toggle>
-
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => handleEdit(classItem)}>
-                        Edit
-                      </Dropdown.Item>
-                      <Dropdown.Item onClick={() => copyClassLink(classId)}>
-                        Copy Invitation Link
-                      </Dropdown.Item>
-                      <Dropdown.Divider />
-                      <Dropdown.Item 
-                        className="text-danger" 
-                        onClick={() => handleArchive(classItem)}
-                        disabled={archiveLoading}
+                  {role !== 'student' && (
+                    <Dropdown onClick={(e) => e.stopPropagation()}>
+                      <Dropdown.Toggle 
+                        variant="link" 
+                        id={`dropdown-${classId}`}
+                        className="text-dark p-0 shadow-none"
                       >
-                        {archiveLoading ? 'Archiving...' : 'Archive'}
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                        {/* Dropdown icon is rendered by default */}
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => handleEdit(classItem)}>
+                          Edit
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => copyClassLink(classId)}>
+                          Copy Invitation Link
+                        </Dropdown.Item>
+                        <Dropdown.Divider />
+                        <Dropdown.Item 
+                          className="text-danger" 
+                          onClick={() => handleArchive(classItem)}
+                          disabled={archiveLoading}
+                        >
+                          {archiveLoading ? 'Archiving...' : 'Archive'}
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  )}
                 </CardHeader>
                 <CardBody>
                   <CardTitle className="fs-4">{classItem.name}</CardTitle>
@@ -277,24 +278,26 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
         </div>
       )}
 
-      <Button 
-        variant="primary" 
-        className="position-fixed rounded-circle p-0 d-flex align-items-center justify-content-center" 
-        style={{
-          width: '60px',
-          height: '60px',
-          bottom: '30px',
-          right: '30px',
-          fontSize: '2rem',
-          lineHeight: '1'
-        }}
-        onClick={() => {
-          resetForm();
-          setShowForm(true);
-        }}
-      >
-        +
-      </Button>
+      {role !== 'student' && (
+        <Button 
+          variant="primary" 
+          className="position-fixed rounded-circle p-0 d-flex align-items-center justify-content-center" 
+          style={{
+            width: '60px',
+            height: '60px',
+            bottom: '30px',
+            right: '30px',
+            fontSize: '2rem',
+            lineHeight: '1'
+          }}
+          onClick={() => {
+            resetForm();
+            setShowForm(true);
+          }}
+        >
+          +
+        </Button>
+      )}
 
       <Modal show={showForm} onHide={() => {
         resetForm();
