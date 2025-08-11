@@ -51,10 +51,4 @@ export const MENU_ITEMS = [{
 //   }]
 // }, 
 
-{
-  key: 'logout',
-  icon: 'ri:logout-box-r-line',
-  label: 'Logout',
-  url: '/logout'
-}
 ];

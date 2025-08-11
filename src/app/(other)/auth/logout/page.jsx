@@ -37,12 +37,15 @@ const Logout = () => {
         </Row>
         <Row>
           <Col xs={12} className="text-center">
-              <LogoutHandler />
+            <p className="text-dark-emphasis">
+              Don&apos;t have an account?
+              <Link href="/auth/register" className="text-dark fw-bold ms-1 link-offset-3 text-decoration-underline">
+                <b>Sign up</b>
+              </Link>
+            </p>
           </Col>
         </Row>
       </Container>
     </div>;
-}
-export default function Logout() {
-  return <LogoutHandler />;
-}
+};
+export default Logout;
