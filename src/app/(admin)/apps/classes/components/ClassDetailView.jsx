@@ -31,7 +31,7 @@ export default function ClassDetailView({ classId }) {
     const fetchAssignments = async () => {
       try {
         const token = localStorage.getItem('token');
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/assignments`;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/assignments`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -77,7 +77,7 @@ export default function ClassDetailView({ classId }) {
     const fetchGrades = async () => {
       try {
         const token = localStorage.getItem('token');
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/grades`;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/grades`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -117,7 +117,7 @@ export default function ClassDetailView({ classId }) {
           redirect: 'follow'
         };
 
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/enrolled-students`;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/enrolled-students`;
         console.log('Fetch students URL:', url);
         console.log('Fetch students token:', token);
         const response = await fetch(url, requestOptions);
@@ -159,7 +159,7 @@ export default function ClassDetailView({ classId }) {
         const token = localStorage.getItem('token');
         // Fetch class data
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function ClassDetailView({ classId }) {
 
         // Fetch announcements
         const annRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/${classId}/announcements`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/announcements`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,

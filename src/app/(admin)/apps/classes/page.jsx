@@ -831,7 +831,7 @@ export default function ClassesPage() {
     try {
       const token = localStorage.getItem('token');
       console.log('Fetching classroom data with token:', token);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

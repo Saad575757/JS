@@ -64,7 +64,7 @@ const ClassCards = () => {
       myHeaders.append('Authorization', `Bearer ${token}`);
       myHeaders.append('Content-Type', 'application/json');
   
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/courses/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom`, {
         method: 'GET',
         headers: myHeaders,
       });
