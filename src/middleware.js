@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+
 export function middleware(request) {
-  const response = NextResponse.next();
-  if (request.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Protect all /dashboard routes
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    const token = request.cookies.get('token')?.value;
+    if (!token) {
+      const loginUrl = new URL('/auth/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
   }
-  return response;
+  return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
-  matcher: '/'
+  matcher: ['/dashboard/:path*'],
 };
-export { default } from 'next-auth/middleware';
