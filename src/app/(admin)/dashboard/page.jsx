@@ -387,14 +387,15 @@ export default function ChatInput() {
       if (!res.ok) throw new Error(res.statusText || 'Request failed');
       
       const data = await res.json();
-      
+      // Debug logs for backend response and bot message structure
+      console.log('[AI DEBUG] API response data:', data);
       const botResponse = {
         sender: 'bot',
         data: data,
         time: new Date(),
         type: 'structured'
       };
-      
+      console.log('[AI DEBUG] botResponse to be added to messages:', botResponse);
       setMessages(prev => [...prev, botResponse]);
       
       if (!conversationId && data.response?.conversationId) {
