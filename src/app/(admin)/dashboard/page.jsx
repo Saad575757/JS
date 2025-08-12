@@ -1125,10 +1125,26 @@ if (response.assignment && typeof response.assignment === 'object') {
 
       // If no custom renderer matched, show all fields in the response object for debugging/visibility
       const textToSpeak = response.message || "Here's the information you requested.";
+      // Render all fields in a table with tags for each key
       return (
         <div className="alert alert-secondary">
-          <div className="fw-bold mb-2">Full Response:</div>
-          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 13, background: 'none', border: 'none', padding: 0 }}>{JSON.stringify(response, null, 2)}</pre>
+          <div className="fw-bold mb-2">Full Response (Raw Data):</div>
+          <table className="table table-bordered table-sm mb-0">
+            <tbody>
+              {Object.entries(response).map(([key, value]) => (
+                <tr key={key}>
+                  <td style={{ width: '1%', whiteSpace: 'nowrap' }}>
+                    <span className="badge bg-info text-dark" style={{ fontSize: 12 }}>{key}</span>
+                  </td>
+                  <td style={{ fontSize: 13 }}>
+                    {typeof value === 'object' && value !== null
+                      ? <pre style={{ margin: 0, background: 'none', border: 'none', padding: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{JSON.stringify(value, null, 2)}</pre>
+                      : String(value)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
     }
