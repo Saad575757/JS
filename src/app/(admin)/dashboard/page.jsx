@@ -757,6 +757,85 @@ if (response.announcements && Array.isArray(response.announcements) && response.
     </div>
   );
 }
+// Custom: Render assignment creation details
+if (response.assignment && typeof response.assignment === 'object') {
+  const a = response.assignment;
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <Badge bg="primary" className="me-2">Assignment</Badge>
+          <strong>{a.title}</strong>
+        </div>
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => toggleSpeech(response.message)}
+          className="p-0 ms-2"
+          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+        >
+          <IconifyIcon
+            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+            width={16}
+          />
+        </Button>
+      </div>
+
+      <Card className="mb-3 shadow-sm border-primary">
+        <Card.Body>
+          <ListGroup variant="flush">
+            <ListGroup.Item>
+              <strong>State:</strong> <Badge bg="success">{a.state}</Badge>
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Work Type:</strong> {a.workType}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Max Points:</strong> {a.maxPoints}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Created:</strong> {new Date(a.creationTime).toLocaleString()}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
+            </ListGroup.Item>
+            {a.assignment?.studentWorkFolder?.id && (
+              <ListGroup.Item>
+                <strong>Student Work Folder:</strong>{" "}
+                <a
+                  href={`https://drive.google.com/drive/folders/${a.assignment.studentWorkFolder.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Drive
+                </a>
+              </ListGroup.Item>
+            )}
+            {a.alternateLink && (
+              <ListGroup.Item>
+                <a
+                  href={a.alternateLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary"
+                >
+                  View in Google Classroom
+                </a>
+              </ListGroup.Item>
+            )}
+          </ListGroup>
+        </Card.Body>
+      </Card>
+
+      {response.conversationId && (
+        <div className="mt-2 small text-muted">
+          Conversation ID: {response.conversationId}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
       // Custom: Render confirm email send response
       if (response.type === 'CONFIRM_EMAIL_SEND' && response.context && response.context.pendingEmail) {
