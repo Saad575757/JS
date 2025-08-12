@@ -1123,11 +1123,14 @@ if (response.assignment && typeof response.assignment === 'object') {
         );
       }
 
-      // ...existing code for assignments/courses...
+      // If no custom renderer matched, show all fields in the response object for debugging/visibility
       const textToSpeak = response.message || "Here's the information you requested.";
-      // ...existing code...
-      // (Keep the rest of the original renderBotResponse logic for other response types)
-      // ...existing code...
+      return (
+        <div className="alert alert-secondary">
+          <div className="fw-bold mb-2">Full Response:</div>
+          <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: 13, background: 'none', border: 'none', padding: 0 }}>{JSON.stringify(response, null, 2)}</pre>
+        </div>
+      );
     }
 
     return <div>Unknown response format</div>;
