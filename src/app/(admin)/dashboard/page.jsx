@@ -958,9 +958,9 @@ if (response.assignment && typeof response.assignment === 'object') {
         );
       }
 
-      // Custom: Render single calendar event (e.g., reschedule)
-      if (response.event && typeof response.event === 'object') {
-        const event = response.event;
+      // Custom: Render meeting creation/summary (rich format)
+      if (response.meeting && typeof response.meeting === 'object') {
+        const meeting = response.meeting;
         const formatDateTime = (dt) => {
           if (!dt) return '';
           const d = new Date(dt);
@@ -973,58 +973,57 @@ if (response.assignment && typeof response.assignment === 'object') {
           <div>
             <div className="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <Badge bg="warning" className="me-2">Calendar</Badge>
-                <strong>Meeting</strong>
+                <Badge bg="warning" className="me-2">Meeting</Badge>
+                <strong>{meeting.summary || 'Meeting Created'}</strong>
               </div>
-              <Button 
-                variant="link" 
-                size="sm" 
+              <Button
+                variant="link"
+                size="sm"
                 onClick={() => toggleSpeech(response.message)}
                 className="p-0 ms-2"
                 title={isSpeaking ? 'Stop speech' : 'Read aloud'}
               >
-                <IconifyIcon 
+                <IconifyIcon
                   icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
-                  width={16} 
+                  width={16}
                 />
               </Button>
             </div>
-            <Card className="mb-3 shadow-sm">
+            <Card className="mb-3 shadow-sm border-warning">
               <Card.Body>
-                <div className="fw-bold mb-2">{event.summary || 'Untitled Event'}</div>
-                <div className="mb-2">
-                  <IconifyIcon icon="mdi:calendar" width={16} className="me-1 text-primary" />
-                  <span className="me-2">{event.start?.dateTime ? formatDateTime(event.start.dateTime) : (event.start?.date ? formatDateTime(event.start.date) : 'No start')}</span>
-                  {event.hangoutLink && (
-                    <span className="ms-2">
-                      <IconifyIcon icon="mdi:video" width={16} className="me-1 text-success" />
-                      <a href={event.hangoutLink} target="_blank" rel="noopener noreferrer">Join Meet</a>
-                    </span>
-                  )}
-                </div>
-                {event.htmlLink && (
-                  <div>
-                    <a href={event.htmlLink} target="_blank" rel="noopener noreferrer" className="small text-muted">
-                      View in Google Calendar
-                    </a>
+                {response.message && (
+                  <div className="mb-3" style={{ whiteSpace: 'pre-line' }}>
+                    <span dangerouslySetInnerHTML={{ __html: response.message.replace(/\n/g, '<br/>') }} />
                   </div>
                 )}
-                {event.attendees && event.attendees.length > 0 && (
-                  <div className="mt-2">
-                    <span className="fw-bold small">Attendees:</span>
-                    <ul className="mb-0 ps-3 small">
-                      {event.attendees.map((a, i) => (
-                        <li key={a.email || i}>
-                          {a.displayName ? `${a.displayName} ` : ''}
-                          {a.email}
-                          {a.responseStatus && (
-                            <span className="ms-1 text-secondary">({a.responseStatus})</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <table className="table table-bordered table-sm mb-0">
+                  <tbody>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Event ID</span></td>
+                      <td>{meeting.id}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Status</span></td>
+                      <td>{meeting.status}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Date</span></td>
+                      <td>{meeting.start?.dateTime ? formatDateTime(meeting.start.dateTime) : ''}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Duration</span></td>
+                      <td>{meeting.start?.dateTime && meeting.end?.dateTime ? `${((new Date(meeting.end.dateTime) - new Date(meeting.start.dateTime)) / 60000)} min` : ''}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Attendees</span></td>
+                      <td>{meeting.attendees && meeting.attendees.length > 0 ? meeting.attendees.map(a => a.email).join(', ') : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Calendar Link</span></td>
+                      <td>{meeting.htmlLink ? <a href={meeting.htmlLink} target="_blank" rel="noopener noreferrer">View in Google Calendar</a> : 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </Card.Body>
             </Card>
             {response.conversationId && (
