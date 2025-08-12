@@ -696,6 +696,68 @@ export default function ChatInput() {
           </div>
         );
       }
+      // Custom: Render course announcements
+if (response.announcements && Array.isArray(response.announcements) && response.announcements.length > 0) {
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <Badge bg="secondary" className="me-2">Announcements</Badge>
+          <strong>Course Announcements</strong>
+        </div>
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => toggleSpeech(response.message)}
+          className="p-0 ms-2"
+          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+        >
+          <IconifyIcon
+            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+            width={16}
+          />
+        </Button>
+      </div>
+
+      <Card className="mb-3 shadow-sm border-secondary">
+        <Card.Body>
+          <ListGroup>
+            {response.announcements.map((ann, idx) => (
+              <ListGroup.Item key={ann.id || idx} className="mb-2">
+                <div className="fw-bold mb-1">
+                  {ann.text}
+                  <span className="badge bg-success ms-2">{ann.state}</span>
+                </div>
+                <div className="small text-muted mb-1">
+                  📅 {new Date(ann.creationTime).toLocaleDateString()}
+                </div>
+                {ann.alternateLink && (
+                  <div>
+                    <a
+                      href={ann.alternateLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="small text-primary"
+                    >
+                      View in Google Classroom
+                    </a>
+                  </div>
+                )}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Card.Body>
+      </Card>
+
+      {response.conversationId && (
+        <div className="mt-2 small text-muted">
+          Conversation ID: {response.conversationId}
+        </div>
+      )}
+    </div>
+  );
+}
+
       // Custom: Render confirm email send response
       if (response.type === 'CONFIRM_EMAIL_SEND' && response.context && response.context.pendingEmail) {
         const email = response.context.pendingEmail;
