@@ -1152,6 +1152,18 @@ if (response.assignment && typeof response.assignment === 'object') {
   };
 
   // Voice Mode: Start listening with SpeechRecognition
+  // Helper: Clean text for TTS (remove **, icon name, /, (, ))
+  const cleanVoiceText = (text) => {
+    if (!text) return '';
+    // Remove asterisks, slashes, parentheses
+    let cleaned = text.replace(/[*/()]/g, ' ');
+    // Remove the word 'icon' (case-insensitive)
+    cleaned = cleaned.replace(/\bicon\b/gi, '');
+    // Remove extra spaces
+    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+    return cleaned;
+  };
+
   const startVoiceListening = () => {
     setVoiceModeError(null);
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1200,12 +1212,14 @@ if (response.assignment && typeof response.assignment === 'object') {
         } else {
           text = 'Sorry, I could not understand the response.';
         }
+        // Clean text for TTS
+        const voiceText = cleanVoiceText(text);
         // Add bot response to chat history
         setMessages(prev => [...prev, { sender: 'bot', text, time: new Date() }]);
         setVoiceModeStatus('playing');
         // Ensure overlay stays open until TTS finishes
-        if (synthRef.current && voice && text) {
-          const utterance = new window.SpeechSynthesisUtterance(text);
+        if (synthRef.current && voice && voiceText) {
+          const utterance = new window.SpeechSynthesisUtterance(voiceText);
           utterance.voice = voice;
           utterance.rate = 1.0;
           utterance.pitch = 1.0;
