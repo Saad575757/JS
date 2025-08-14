@@ -6,6 +6,7 @@ import {
   Form, Col, Row, Modal, Table, ProgressBar
 } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
+import ClassCalendar from './ClassCalendar';
 import { useRouter } from 'next/navigation';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
@@ -838,28 +839,7 @@ export default function ClassDetailView({ classId }) {
                 </div>
                 <Card className="border-0 shadow-sm">
                   <CardBody>
-                    <h5 className="mb-3">Events</h5>
-                    {events.length === 0 ? (
-                      <p className="text-muted">No events found</p>
-                    ) : (
-                      <ListGroup>
-                        {events.map((event) => (
-                          <ListGroupItem key={event.id}>
-                            <div className="fw-bold">{event.summary || 'Untitled Event'}</div>
-                            <small className="text-muted">
-                              {event.start && event.start.dateTime
-                                ? new Date(event.start.dateTime).toLocaleString()
-                                : 'No start time'} - {event.end && event.end.dateTime
-                                ? new Date(event.end.dateTime).toLocaleString()
-                                : 'No end time'}
-                            </small>
-                            {event.description && (
-                              <p className="mt-2 mb-0">{event.description}</p>
-                            )}
-                          </ListGroupItem>
-                        ))}
-                      </ListGroup>
-                    )}
+                    <ClassCalendar events={events} />
                   </CardBody>
                 </Card>
               </Tab.Pane>
