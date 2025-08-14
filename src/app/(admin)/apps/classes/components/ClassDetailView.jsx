@@ -6,7 +6,6 @@ import {
   Form, Col, Row, Modal, Table, ProgressBar
 } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
-import ClassCalendar from './ClassCalendar';
 import { useRouter } from 'next/navigation';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
@@ -302,9 +301,7 @@ export default function ClassDetailView({ classId }) {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem('token');
-        // Use calendarId from classData if available, fallback to default
-        const calendarId = classData?.calendarId || 'c_classroomdf8d5062@group.calendar.google.com';
-        const url = `https://class.xytek.ai/api/calendar/${calendarId}/events`;
+        const url = 'https://class.xytek.ai/api/calendar/c_classroomdf8d5062@group.calendar.google.com/events';
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -327,9 +324,8 @@ export default function ClassDetailView({ classId }) {
         console.error('Fetch events error:', err);
       }
     };
-    // Only fetch when classData is loaded
-    if (classData) fetchEvents();
-  }, [classData]);
+    fetchEvents();
+  }, []);
 
   // Loading state
   if (loading) return <Container className="py-4">Loading...</Container>;
@@ -839,7 +835,28 @@ export default function ClassDetailView({ classId }) {
                 </div>
                 <Card className="border-0 shadow-sm">
                   <CardBody>
-                    <ClassCalendar events={events} />
+                    <h5 className="mb-3">Events</h5>
+                    {events.length === 0 ? (
+                      <p className="text-muted">No events found</p>
+                    ) : (
+                      <ListGroup>
+                        {events.map((event) => (
+                          <ListGroupItem key={event.id}>
+                            <div className="fw-bold">{event.summary || 'Untitled Event'}</div>
+                            <small className="text-muted">
+                              {event.start && event.start.dateTime
+                                ? new Date(event.start.dateTime).toLocaleString()
+                                : 'No start time'} - {event.end && event.end.dateTime
+                                ? new Date(event.end.dateTime).toLocaleString()
+                                : 'No end time'}
+                            </small>
+                            {event.description && (
+                              <p className="mt-2 mb-0">{event.description}</p>
+                            )}
+                          </ListGroupItem>
+                        ))}
+                      </ListGroup>
+                    )}
                   </CardBody>
                 </Card>
               </Tab.Pane>
