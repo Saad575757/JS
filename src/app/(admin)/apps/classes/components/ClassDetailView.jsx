@@ -856,14 +856,22 @@ export default function ClassDetailView({ classId }) {
     description: event.description
   }))}
   eventContent={(arg) => {
-    // The `title` attribute is removed to disable the hover effect.
     return (
       <div className="event-content">
-        <b>{arg.event.title}</b>
+        <b>{arg.event.title}</b> {/* Show the title directly */}
       </div>
     );
   }}
+  eventRender={(info) => {
+    // Make sure the event title is always visible (in case you want to override any default settings)
+    const eventElement = info.el;
+    const titleElement = eventElement.querySelector('.fc-event-title');
+    if (titleElement) {
+      titleElement.style.visibility = 'visible';  // Ensure visibility of the event title
+    }
+  }}
 />
+
       </CardBody>
     </Card>
   </Tab.Pane>
