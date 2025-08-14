@@ -1414,7 +1414,7 @@ if (response.assignment && typeof response.assignment === 'object') {
                 variant="outline-success"
                 onClick={openVoiceMode}
                 disabled={isLoading || showVoiceMode}
-                title="Voice Mode (ChatGPT style)"
+                title="Voice Mode"
               >
                 <IconifyIcon icon="mdi:waveform" width={22} />
               </Button>

@@ -31,7 +31,7 @@ export default function ClassDetailView({ classId }) {
     const fetchAssignments = async () => {
       try {
         const token = localStorage.getItem('token');
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/assignments`;
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/courses/${classId}/assignments`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
