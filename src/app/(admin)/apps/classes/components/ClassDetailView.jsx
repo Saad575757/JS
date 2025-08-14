@@ -841,29 +841,29 @@ export default function ClassDetailView({ classId }) {
       </CardHeader>
       <CardBody>
         <FullCalendar
-          plugins={[dayGridPlugin]} // Add more plugins as needed
-          initialView="dayGridMonth" // Set the initial view (e.g., month, week, day)
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,dayGridWeek,dayGridDay' // Add other views
-          }}
-          events={events.map(event => ({
-            id: event.id,
-            title: event.summary || 'Untitled Event',
-            start: event.start && event.start.dateTime,
-            end: event.end && event.end.dateTime,
-            description: event.description
-          }))}
-          eventContent={(arg) => {
-            return (
-              <div className="event-tooltip" title={arg.event.extendedProps.description}>
-                <b>{arg.event.title}</b>
-              </div>
-            );
-          }}
-          // You can add more props and event handlers here
-        />
+  plugins={[dayGridPlugin]}
+  initialView="dayGridMonth"
+  headerToolbar={{
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,dayGridWeek,dayGridDay'
+  }}
+  events={events.map(event => ({
+    id: event.id,
+    title: event.summary || 'Untitled Event',
+    start: event.start && event.start.dateTime,
+    end: event.end && event.end.dateTime,
+    description: event.description
+  }))}
+  eventContent={(arg) => {
+    // The `title` attribute is removed to disable the hover effect.
+    return (
+      <div className="event-content">
+        <b>{arg.event.title}</b>
+      </div>
+    );
+  }}
+/>
       </CardBody>
     </Card>
   </Tab.Pane>
