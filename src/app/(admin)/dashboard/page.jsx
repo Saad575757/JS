@@ -29,7 +29,6 @@
 //     </>;
 // };
 // export default Dashboard;
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -51,6 +50,7 @@ import {
 } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
+// Prompt Suggestions Component (defined in the same file)
 function PromptSuggestions({ onPromptSelect, isLoading }) {
   const promptCategories = [
     {
@@ -178,6 +178,7 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
 }
 
 export default function ChatInput() {
+  // Extract token, role, name, email, picture from URL and save to localStorage if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
@@ -192,6 +193,7 @@ export default function ChatInput() {
       if (name) localStorage.setItem('name', name);
       if (email) localStorage.setItem('email', email);
       if (picture) localStorage.setItem('picture', picture);
+      // Console log the values for debugging
       console.log('Dashboard extracted values:', {
         token: token || localStorage.getItem('token'),
         role: role || localStorage.getItem('role'),
@@ -215,11 +217,11 @@ export default function ChatInput() {
   const [voice, setVoice] = useState(null);
   const [voices, setVoices] = useState([]);
   const [showVoiceMode, setShowVoiceMode] = useState(false);
-  const [voiceModeStatus, setVoiceModeStatus] = useState('idle');
+  const [voiceModeStatus, setVoiceModeStatus] = useState('idle'); // idle | recording | processing | playing
   const [voiceModeError, setVoiceModeError] = useState(null);
   const [voiceModeTranscript, setVoiceModeTranscript] = useState('');
-  const [recognitionLang, setRecognitionLang] = useState('en-US');
-  const [userNames, setUserNames] = useState({});
+  const [recognitionLang, setRecognitionLang] = useState('en-US'); // New: language for speech recognition
+  const [userNames, setUserNames] = useState({}); // userId -> name
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioPlayerRef = useRef(null);
@@ -229,7 +231,9 @@ export default function ChatInput() {
   const recognitionRef = useRef(null);
   const voiceModeTimeoutRef = useRef(null);
 
+  // Initialize speech synthesis and recognition
   useEffect(() => {
+    // Speech Synthesis (TTS)
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       synthRef.current = window.speechSynthesis;
       
@@ -248,12 +252,13 @@ export default function ChatInput() {
       console.warn('Text-to-speech not supported in this browser');
     }
 
+    // Speech Recognition (STT)
     if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = recognitionLang;
+      recognitionRef.current.lang = recognitionLang; // Use selected language
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -285,6 +290,7 @@ export default function ChatInput() {
     };
   }, [isListening, recognitionLang]);
 
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -292,6 +298,7 @@ export default function ChatInput() {
     }
   }, [message]);
 
+  // Speech functions
   const speak = (text) => {
     if (!synthRef.current || !voice) return;
     
@@ -339,17 +346,18 @@ export default function ChatInput() {
       return;
     }
 
-    recognitionRef.current.lang = recognitionLang;
+    recognitionRef.current.lang = recognitionLang; // Set language before starting
     if (isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
     } else {
-      setMessage('');
+      setMessage(''); // Clear the input when starting new recording
       recognitionRef.current.start();
       setIsListening(true);
     }
   };
 
+  // Message handling
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -379,6 +387,7 @@ export default function ChatInput() {
       if (!res.ok) throw new Error(res.statusText || 'Request failed');
       
       const data = await res.json();
+      // Debug logs for backend response and bot message structure
       console.log('[AI DEBUG] API response data:', data);
       const botResponse = {
         sender: 'bot',
@@ -434,6 +443,7 @@ export default function ChatInput() {
     }, 50);
   };
 
+  // Helper to fetch user name from Google Classroom API
   const fetchUserName = useCallback(async (userId, token) => {
     if (!userId || userNames[userId]) return;
     try {
@@ -451,6 +461,7 @@ export default function ChatInput() {
     }
   }, [userNames]);
 
+  // Fetch user names for all userIds in submissions
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg && lastMsg.type === 'structured' && lastMsg.data && lastMsg.data.submissions) {
@@ -463,6 +474,7 @@ export default function ChatInput() {
   }, [messages, fetchUserName, userNames]);
 
   const renderBotResponse = (msg) => {
+    // Show any {message: ...} response from backend as a bot message (no input field)
     if (msg.data && typeof msg.data === 'object' && msg.data.message && !msg.data.response) {
       return (
         <div className="d-flex justify-content-between align-items-start">
@@ -527,7 +539,9 @@ export default function ChatInput() {
 
     if (msg.type === 'structured' && msg.data) {
       const response = msg.data;
+      // Custom: Render grade update message
       if (msg.data && msg.data.message && /Grade updated for (.+?) on ".+?"\./.test(msg.data.message)) {
+        // Extract student name and assignment name
         const match = msg.data.message.match(/Grade updated for (.+?) on \"(.+?)\"\./);
         const studentName = match ? match[1] : '';
         const assignmentName = match ? match[2] : '';
@@ -566,10 +580,13 @@ export default function ChatInput() {
           </div>
         );
       }
+      // Custom: Render assignment submissions summary
       if (response.submissions && Array.isArray(response.submissions) && response.submissions.length > 0) {
+        // Try to extract assignment name from message
         let assignmentName = '';
         const match = response.message && response.message.match(/Submissions for \"(.+?)\"/);
         if (match) assignmentName = match[1];
+        // Count submitted
         const submittedCount = response.submissions.length;
         return (
           <div>
@@ -604,6 +621,7 @@ export default function ChatInput() {
                         <div className="fw-bold">
                           Syed Aman <span className="badge bg-success ms-2">{sub.state}</span>
                         </div>
+                        {/* Show grade info if available */}
                         {(typeof sub.assignedGrade !== 'undefined' || typeof sub.draftGrade !== 'undefined') && (
                           <div className="small text-secondary mb-1">
                             {typeof sub.assignedGrade !== 'undefined' && (
@@ -614,6 +632,7 @@ export default function ChatInput() {
                             )}
                           </div>
                         )}
+                        {/* Submission History */}
                         {Array.isArray(sub.submissionHistory) && sub.submissionHistory.length > 0 && (
                           <div className="mt-1">
                             <details>
@@ -650,6 +669,7 @@ export default function ChatInput() {
                             {sub.assignmentSubmission.attachments.map((att, i) => (
                               att.driveFile ? (
                                 <div key={att.driveFile.id || i} className="d-flex align-items-center mb-1">
+                                  {/* Use Google Docs icon instead of thumbnail */}
                                   <span className="me-2 fw-bold text-primary" >📄</span>
                                   <a href={att.driveFile.alternateLink} target="_blank" rel="noopener noreferrer">{att.driveFile.title}</a>
                                 </div>
@@ -666,6 +686,7 @@ export default function ChatInput() {
                     );
                   })}
                 </ListGroup>
+                {/* Not Submitted section can be added if needed */}
               </Card.Body>
             </Card>
             {response.conversationId && (
@@ -676,139 +697,148 @@ export default function ChatInput() {
           </div>
         );
       }
-      if (response.announcements && Array.isArray(response.announcements) && response.announcements.length > 0) {
-        return (
-          <div>
-            <div className="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <Badge bg="secondary" className="me-2">Announcements</Badge>
-                <strong>Course Announcements</strong>
-              </div>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => toggleSpeech(response.message)}
-                className="p-0 ms-2"
-                title={isSpeaking ? 'Stop speech' : 'Read aloud'}
-              >
-                <IconifyIcon
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
-                  width={16}
-                />
-              </Button>
-            </div>
-            <Card className="mb-3 shadow-sm border-secondary">
-              <Card.Body>
-                <ListGroup>
-                  {response.announcements.map((ann, idx) => (
-                    <ListGroup.Item key={ann.id || idx} className="mb-2">
-                      <div className="fw-bold mb-1">
-                        {ann.text}
-                        <span className="badge bg-success ms-2">{ann.state}</span>
-                      </div>
-                      <div className="small text-muted mb-1">
-                        📅 {new Date(ann.creationTime).toLocaleDateString()}
-                      </div>
-                      {ann.alternateLink && (
-                        <div>
-                          <a
-                            href={ann.alternateLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="small text-primary"
-                          >
-                            View in Google Classroom
-                          </a>
-                        </div>
-                      )}
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </Card.Body>
-            </Card>
-            {response.conversationId && (
-              <div className="mt-2 small text-muted">
-                Conversation ID: {response.conversationId}
-              </div>
+      // Custom: Render course announcements
+if (response.announcements && Array.isArray(response.announcements) && response.announcements.length > 0) {
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <Badge bg="secondary" className="me-2">Announcements</Badge>
+          <strong>Course Announcements</strong>
+        </div>
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => toggleSpeech(response.message)}
+          className="p-0 ms-2"
+          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+        >
+          <IconifyIcon
+            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+            width={16}
+          />
+        </Button>
+      </div>
+
+      <Card className="mb-3 shadow-sm border-secondary">
+        <Card.Body>
+          <ListGroup>
+            {response.announcements.map((ann, idx) => (
+              <ListGroup.Item key={ann.id || idx} className="mb-2">
+                <div className="fw-bold mb-1">
+                  {ann.text}
+                  <span className="badge bg-success ms-2">{ann.state}</span>
+                </div>
+                <div className="small text-muted mb-1">
+                  📅 {new Date(ann.creationTime).toLocaleDateString()}
+                </div>
+                {ann.alternateLink && (
+                  <div>
+                    <a
+                      href={ann.alternateLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="small text-primary"
+                    >
+                      View in Google Classroom
+                    </a>
+                  </div>
+                )}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        </Card.Body>
+      </Card>
+
+      {response.conversationId && (
+        <div className="mt-2 small text-muted">
+          Conversation ID: {response.conversationId}
+        </div>
+      )}
+    </div>
+  );
+}
+// Custom: Render assignment creation details
+if (response.assignment && typeof response.assignment === 'object') {
+  const a = response.assignment;
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <Badge bg="primary" className="me-2">Assignment</Badge>
+          <strong>{a.title}</strong>
+        </div>
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => toggleSpeech(response.message)}
+          className="p-0 ms-2"
+          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+        >
+          <IconifyIcon
+            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+            width={16}
+          />
+        </Button>
+      </div>
+
+      <Card className="mb-3 shadow-sm border-primary">
+        <Card.Body>
+          <ListGroup variant="flush">
+            <ListGroup.Item>
+              <strong>State:</strong> <Badge bg="success">{a.state}</Badge>
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Work Type:</strong> {a.workType}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Max Points:</strong> {a.maxPoints}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Created:</strong> {new Date(a.creationTime).toLocaleString()}
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
+            </ListGroup.Item>
+            {a.assignment?.studentWorkFolder?.id && (
+              <ListGroup.Item>
+                <strong>Student Work Folder:</strong>{" "}
+                <a
+                  href={`https://drive.google.com/drive/folders/${a.assignment.studentWorkFolder.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Drive
+                </a>
+              </ListGroup.Item>
             )}
-          </div>
-        );
-      }
-      if (response.assignment && typeof response.assignment === 'object') {
-        const a = response.assignment;
-        return (
-          <div>
-            <div className="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <Badge bg="primary" className="me-2">Assignment</Badge>
-                <strong>{a.title}</strong>
-              </div>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => toggleSpeech(response.message)}
-                className="p-0 ms-2"
-                title={isSpeaking ? 'Stop speech' : 'Read aloud'}
-              >
-                <IconifyIcon
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
-                  width={16}
-                />
-              </Button>
-            </div>
-            <Card className="mb-3 shadow-sm border-primary">
-              <Card.Body>
-                <ListGroup variant="flush">
-                  <ListGroup.Item>
-                    <strong>State:</strong> <Badge bg="success">{a.state}</Badge>
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Work Type:</strong> {a.workType}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Max Points:</strong> {a.maxPoints}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Created:</strong> {new Date(a.creationTime).toLocaleString()}
-                  </ListGroup.Item>
-                  <ListGroup.Item>
-                    <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
-                  </ListGroup.Item>
-                  {a.assignment?.studentWorkFolder?.id && (
-                    <ListGroup.Item>
-                      <strong>Student Work Folder:</strong>{" "}
-                      <a
-                        href={`https://drive.google.com/drive/folders/${a.assignment.studentWorkFolder.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Open in Google Drive
-                      </a>
-                    </ListGroup.Item>
-                  )}
-                  {a.alternateLink && (
-                    <ListGroup.Item>
-                      <a
-                        href={a.alternateLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary"
-                      >
-                        View in Google Classroom
-                      </a>
-                    </ListGroup.Item>
-                  )}
-                </ListGroup>
-              </Card.Body>
-            </Card>
-            {response.conversationId && (
-              <div className="mt-2 small text-muted">
-                Conversation ID: {response.conversationId}
-              </div>
+            {a.alternateLink && (
+              <ListGroup.Item>
+                <a
+                  href={a.alternateLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary"
+                >
+                  View in Google Classroom
+                </a>
+              </ListGroup.Item>
             )}
-          </div>
-        );
-      }
+          </ListGroup>
+        </Card.Body>
+      </Card>
+
+      {response.conversationId && (
+        <div className="mt-2 small text-muted">
+          Conversation ID: {response.conversationId}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+      // Custom: Render confirm email send response
       if (response.type === 'CONFIRM_EMAIL_SEND' && response.context && response.context.pendingEmail) {
         const email = response.context.pendingEmail;
         return (
@@ -849,6 +879,7 @@ export default function ChatInput() {
           </div>
         );
       }
+      // Custom: Render emails from Shakil Ahmed
       if (response.emails && Array.isArray(response.emails) && response.emails.length > 0) {
         return (
           <div>
@@ -890,6 +921,8 @@ export default function ChatInput() {
           </div>
         );
       }
+
+      // Custom: Render meeting cancelled response
       if (response.type === 'MEETING_CANCELLED') {
         return (
           <div>
@@ -906,7 +939,7 @@ export default function ChatInput() {
                 title={isSpeaking ? 'Stop speech' : 'Read aloud'}
               >
                 <IconifyIcon 
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'} 
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
                   width={16} 
                 />
               </Button>
@@ -924,6 +957,8 @@ export default function ChatInput() {
           </div>
         );
       }
+
+      // Custom: Render meeting creation/summary (rich format)
       if (response.meeting && typeof response.meeting === 'object') {
         const meeting = response.meeting;
         const formatDateTime = (dt) => {
@@ -999,9 +1034,13 @@ export default function ChatInput() {
           </div>
         );
       }
+
+      // Custom: Render calendar events
       if (response.events && Array.isArray(response.events) && response.events.length > 0) {
+        // Helper to format date/time
         const formatDateTime = (dt) => {
           if (!dt) return '';
+          // Try to parse as ISO string
           const d = new Date(dt);
           if (!isNaN(d)) {
             return d.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
@@ -1013,7 +1052,7 @@ export default function ChatInput() {
             <div className="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <Badge bg="primary" className="me-2">Calendar</Badge>
-                <strong>Today's Meetings & Events</strong>
+                <strong>Today&apos;s Meetings & Events</strong>
               </div>
               <Button 
                 variant="link" 
@@ -1023,7 +1062,7 @@ export default function ChatInput() {
                 title={isSpeaking ? 'Stop speech' : 'Read aloud'}
               >
                 <IconifyIcon 
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'} 
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
                   width={16} 
                 />
               </Button>
@@ -1082,7 +1121,10 @@ export default function ChatInput() {
           </div>
         );
       }
+
+      // If no custom renderer matched, show all fields in the response object for debugging/visibility
       const textToSpeak = response.message || "Here's the information you requested.";
+      // Render all fields in a table with tags for each key
       return (
         <div className="alert alert-secondary">
           <div className="fw-bold mb-2">Full Response (Raw Data):</div>
@@ -1105,9 +1147,11 @@ export default function ChatInput() {
         </div>
       );
     }
+
     return <div>Unknown response format</div>;
   };
 
+  // Voice Mode: Start listening with SpeechRecognition
   const startVoiceListening = () => {
     setVoiceModeError(null);
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1118,13 +1162,14 @@ export default function ChatInput() {
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
-    recognition.lang = recognitionLang;
+    recognition.lang = recognitionLang; // Use selected language
     setVoiceModeStatus('recording');
     recognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
       setVoiceModeStatus('processing');
-      setMessage(transcript);
+      setMessage(transcript); // Show in input for debug
       setVoiceModeTranscript(transcript);
+      // Add user message to chat history
       setMessages(prev => [...prev, { sender: 'user', text: transcript, time: new Date() }]);
       try {
         const token = localStorage.getItem('token');
@@ -1155,8 +1200,10 @@ export default function ChatInput() {
         } else {
           text = 'Sorry, I could not understand the response.';
         }
+        // Add bot response to chat history
         setMessages(prev => [...prev, { sender: 'bot', text, time: new Date() }]);
         setVoiceModeStatus('playing');
+        // Ensure overlay stays open until TTS finishes
         if (synthRef.current && voice && text) {
           const utterance = new window.SpeechSynthesisUtterance(text);
           utterance.voice = voice;
@@ -1172,7 +1219,7 @@ export default function ChatInput() {
             setShowVoiceMode(false);
             setVoiceModeTranscript('');
           };
-          synthRef.current.cancel();
+          synthRef.current.cancel(); // Stop any previous speech
           synthRef.current.speak(utterance);
         } else {
           setVoiceModeStatus('idle');
@@ -1190,17 +1237,19 @@ export default function ChatInput() {
       setVoiceModeStatus('idle');
     };
     recognition.onend = () => {
+      // Do nothing, handled in onresult
     };
     recognition.start();
     recognitionRef.current = recognition;
   };
 
+  // Voice Mode: open overlay and start listening
   const openVoiceMode = () => {
     setShowVoiceMode(true);
     setVoiceModeTranscript('');
     setTimeout(() => startVoiceListening(), 300);
   };
-
+  // Voice Mode: close overlay and stop everything
   const closeVoiceMode = () => {
     setShowVoiceMode(false);
     setVoiceModeStatus('idle');
@@ -1225,6 +1274,7 @@ export default function ChatInput() {
               <small className="text-muted">Conversation ID: {conversationId}</small>
             )}
           </div>
+          {/* Language selector for speech recognition */}
           <div className="me-2">
             <Dropdown>
               <Dropdown.Toggle variant="outline-secondary" size="sm">
@@ -1307,6 +1357,7 @@ export default function ChatInput() {
           )}
         </div>
         
+        {/* Input area */}
         <div className="p-3 border-top">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible className="mb-3">
@@ -1344,6 +1395,7 @@ export default function ChatInput() {
               >
                 <IconifyIcon icon={isListening ? 'mdi:microphone-off' : 'mdi:microphone'} width={20} />
               </Button>
+              {/* Voice Mode Button */}
               <Button
                 variant="outline-success"
                 onClick={openVoiceMode}
@@ -1377,6 +1429,7 @@ export default function ChatInput() {
             </div>
           </Form>
         </div>
+        {/* Voice Mode Fullscreen Overlay */}
         {showVoiceMode && (
           <div style={{
             position: 'fixed',
@@ -1424,6 +1477,7 @@ export default function ChatInput() {
             <audio ref={audioPlayerRef} style={{ display: 'none' }} />
           </div>
         )}
+        {/* Prompt suggestions */}
         <div className="p-3">
           <PromptSuggestions 
             onPromptSelect={handlePromptSelect} 
@@ -1434,3 +1488,4 @@ export default function ChatInput() {
     </Card>
   );
 }
+
