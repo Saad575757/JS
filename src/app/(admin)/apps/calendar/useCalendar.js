@@ -11,6 +11,10 @@ const useCalendar = () => {
   const [eventData, setEventData] = useState();
   const [dateInfo, setDateInfo] = useState();
 
+  // Store API key + Calendar ID in localStorage (user provides these in your UI)
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("googleApiKey") || "");
+  const [calendarId, setCalendarId] = useState(() => localStorage.getItem("googleCalendarId") || "");
+
   const onOpenModal = () => setShow(true);
   const onCloseModal = () => {
     setEventData(undefined);
@@ -18,24 +22,20 @@ const useCalendar = () => {
     setShow(false);
   };
 
-  // ✅ Load Google Calendar events directly
+  // ✅ Load Google Calendar events directly (public calendar)
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Google OAuth access_token
-    console.log("🔑 Stored Token:", token); // log token
-
-    if (!token) {
-      console.warn("⚠ No token found in localStorage.");
+    if (!apiKey || !calendarId) {
+      console.warn("⚠ Google API Key or Calendar ID not set");
       return;
     }
 
-    fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    console.log("🔑 Google API Key:", apiKey);
+    console.log("📅 Google Calendar ID:", calendarId);
+
+    fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?key=${apiKey}`)
       .then(res => res.json())
       .then(data => {
-        console.log("📅 Google Calendar API Response:", data); // log response
+        console.log("📅 Google Calendar API Response:", data);
         if (data.items) {
           const googleEvents = data.items.map(event => ({
             id: event.id,
@@ -53,7 +53,7 @@ const useCalendar = () => {
         console.error("❌ Google Calendar fetch error:", err);
         setEvents(defaultEvents);
       });
-  }, []);
+  }, [apiKey, calendarId]);
 
   // ✅ Setup draggable events
   useEffect(() => {
@@ -144,7 +144,9 @@ const useCalendar = () => {
     eventData,
     onUpdateEvent,
     onRemoveEvent,
-    onAddEvent
+    onAddEvent,
+    setApiKey,       // expose setter so UI can update
+    setCalendarId,   // expose setter so UI can update
   };
 };
 
