@@ -301,7 +301,9 @@ export default function ClassDetailView({ classId }) {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem('token');
-        const url = 'https://class.xytek.ai/api/calendar/c_classroomdf8d5062@group.calendar.google.com/events';
+        // Use calendarId from classData if available, fallback to default
+        const calendarId = classData?.calendarId || 'c_classroomdf8d5062@group.calendar.google.com';
+        const url = `https://class.xytek.ai/api/calendar/${calendarId}/events`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -324,8 +326,9 @@ export default function ClassDetailView({ classId }) {
         console.error('Fetch events error:', err);
       }
     };
-    fetchEvents();
-  }, []);
+    // Only fetch when classData is loaded
+    if (classData) fetchEvents();
+  }, [classData]);
 
   // Loading state
   if (loading) return <Container className="py-4">Loading...</Container>;
