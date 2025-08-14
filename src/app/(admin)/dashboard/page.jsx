@@ -1,34 +1,3 @@
-// import { Col, Row } from 'react-bootstrap';
-// import Stats from './components/Stats';
-// import MerchantList from './components/MerchantList';
-// import { merchantListData } from './data';
-// import RevenueChart from './components/RevenueChart';
-// import OrderStatus from './components/OrderStatus';
-// import RecentOrders from './components/RecentOrders';
-// import PageTitle from '@/components/PageTitle';
-// const Dashboard = () => {
-//   return <>
-//       <PageTitle title="Dashboard" />
-//       <Stats />
-//       <Row>
-//         <Col lg={4} className="order-2 order-lg-1">
-//           <MerchantList merchants={merchantListData} />
-//         </Col>
-//         <Col lg={8} className="order-1 order-lg-2">
-//           <RevenueChart />
-//         </Col>
-//       </Row>
-//       <Row>
-//         <Col xxl={4} className="order-1 order-lg-2">
-//           <OrderStatus />
-//         </Col>
-//         <Col xxl={8} className="order-2 order-lg-1">
-//           <RecentOrders />
-//         </Col>
-//       </Row>
-//     </>;
-// };
-// export default Dashboard;
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -398,26 +367,26 @@ export default function ChatInput() {
       console.log('[AI DEBUG] botResponse to be added to messages:', botResponse);
       setMessages(prev => [...prev, botResponse]);
       
-      if (!conversationId && data.response?.conversationId) {
-        setConversationId(data.response.conversationId);
+      if (!conversationId && data.conversationId) {
+        setConversationId(data.conversationId);
       }
       
-      if (data.response?.message) {
-        speak(data.response.message);
-      } else if (data.response) {
+      if (data.message) {
+        speak(data.message);
+      } else {
         speak("Here's the information you requested.");
       }
       
-      if (data.response?.nextSteps) {
+      if (data.nextSteps) {
         setTimeout(() => {
           const nextStepsMessage = {
             sender: 'bot',
-            text: data.response.nextSteps,
+            text: data.nextSteps,
             time: new Date(),
             type: 'nextSteps'
           };
           setMessages(prev => [...prev, nextStepsMessage]);
-          speak(data.response.nextSteps);
+          speak(data.nextSteps);
         }, 1000);
       }
     } catch (error) {
@@ -586,8 +555,6 @@ export default function ChatInput() {
         let assignmentName = '';
         const match = response.message && response.message.match(/Submissions for \"(.+?)\"/);
         if (match) assignmentName = match[1];
-        // Count submitted
-        const submittedCount = response.submissions.length;
         return (
           <div>
             <div className="d-flex justify-content-between align-items-start mb-2">
@@ -611,7 +578,7 @@ export default function ChatInput() {
             <Card className="mb-3 shadow-sm border-success">
               <Card.Body>
                 <div className="mb-2 fw-bold">
-                  Submitted ({submittedCount}):
+                  Submitted ({response.submissions.length}):
                 </div>
                 <ListGroup className="mb-3">
                   {response.submissions.map((sub, idx) => {
@@ -698,144 +665,144 @@ export default function ChatInput() {
         );
       }
       // Custom: Render course announcements
-if (response.announcements && Array.isArray(response.announcements) && response.announcements.length > 0) {
-  return (
-    <div>
-      <div className="d-flex justify-content-between align-items-start mb-2">
-        <div>
-          <Badge bg="secondary" className="me-2">Announcements</Badge>
-          <strong>Course Announcements</strong>
-        </div>
-        <Button
-          variant="link"
-          size="sm"
-          onClick={() => toggleSpeech(response.message)}
-          className="p-0 ms-2"
-          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
-        >
-          <IconifyIcon
-            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
-            width={16}
-          />
-        </Button>
-      </div>
+      if (response.announcements && Array.isArray(response.announcements) && response.announcements.length > 0) {
+        return (
+          <div>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <Badge bg="secondary" className="me-2">Announcements</Badge>
+                <strong>Course Announcements</strong>
+              </div>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => toggleSpeech(response.message)}
+                className="p-0 ms-2"
+                title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+              >
+                <IconifyIcon
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+                  width={16}
+                />
+              </Button>
+            </div>
 
-      <Card className="mb-3 shadow-sm border-secondary">
-        <Card.Body>
-          <ListGroup>
-            {response.announcements.map((ann, idx) => (
-              <ListGroup.Item key={ann.id || idx} className="mb-2">
-                <div className="fw-bold mb-1">
-                  {ann.text}
-                  <span className="badge bg-success ms-2">{ann.state}</span>
-                </div>
-                <div className="small text-muted mb-1">
-                  📅 {new Date(ann.creationTime).toLocaleDateString()}
-                </div>
-                {ann.alternateLink && (
-                  <div>
-                    <a
-                      href={ann.alternateLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="small text-primary"
-                    >
-                      View in Google Classroom
-                    </a>
-                  </div>
-                )}
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </Card.Body>
-      </Card>
+            <Card className="mb-3 shadow-sm border-secondary">
+              <Card.Body>
+                <ListGroup>
+                  {response.announcements.map((ann, idx) => (
+                    <ListGroup.Item key={ann.id || idx} className="mb-2">
+                      <div className="fw-bold mb-1">
+                        {ann.text}
+                        <span className="badge bg-success ms-2">{ann.state}</span>
+                      </div>
+                      <div className="small text-muted mb-1">
+                        📅 {new Date(ann.creationTime).toLocaleDateString()}
+                      </div>
+                      {ann.alternateLink && (
+                        <div>
+                          <a
+                            href={ann.alternateLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="small text-primary"
+                          >
+                            View in Google Classroom
+                          </a>
+                        </div>
+                      )}
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </Card.Body>
+            </Card>
 
-      {response.conversationId && (
-        <div className="mt-2 small text-muted">
-          Conversation ID: {response.conversationId}
-        </div>
-      )}
-    </div>
-  );
-}
-// Custom: Render assignment creation details
-if (response.assignment && typeof response.assignment === 'object') {
-  const a = response.assignment;
-  return (
-    <div>
-      <div className="d-flex justify-content-between align-items-start mb-2">
-        <div>
-          <Badge bg="primary" className="me-2">Assignment</Badge>
-          <strong>{a.title}</strong>
-        </div>
-        <Button
-          variant="link"
-          size="sm"
-          onClick={() => toggleSpeech(response.message)}
-          className="p-0 ms-2"
-          title={isSpeaking ? 'Stop speech' : 'Read aloud'}
-        >
-          <IconifyIcon
-            icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
-            width={16}
-          />
-        </Button>
-      </div>
-
-      <Card className="mb-3 shadow-sm border-primary">
-        <Card.Body>
-          <ListGroup variant="flush">
-            <ListGroup.Item>
-              <strong>State:</strong> <Badge bg="success">{a.state}</Badge>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <strong>Work Type:</strong> {a.workType}
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <strong>Max Points:</strong> {a.maxPoints}
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <strong>Created:</strong> {new Date(a.creationTime).toLocaleString()}
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
-            </ListGroup.Item>
-            {a.assignment?.studentWorkFolder?.id && (
-              <ListGroup.Item>
-                <strong>Student Work Folder:</strong>{" "}
-                <a
-                  href={`https://drive.google.com/drive/folders/${a.assignment.studentWorkFolder.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open in Google Drive
-                </a>
-              </ListGroup.Item>
+            {response.conversationId && (
+              <div className="mt-2 small text-muted">
+                Conversation ID: {response.conversationId}
+              </div>
             )}
-            {a.alternateLink && (
-              <ListGroup.Item>
-                <a
-                  href={a.alternateLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary"
-                >
-                  View in Google Classroom
-                </a>
-              </ListGroup.Item>
-            )}
-          </ListGroup>
-        </Card.Body>
-      </Card>
+          </div>
+        );
+      }
+      // Custom: Render assignment creation details
+      if (response.assignment && typeof response.assignment === 'object') {
+        const a = response.assignment;
+        return (
+          <div>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <Badge bg="primary" className="me-2">Assignment</Badge>
+                <strong>{a.title}</strong>
+              </div>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => toggleSpeech(response.message)}
+                className="p-0 ms-2"
+                title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+              >
+                <IconifyIcon
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+                  width={16}
+                />
+              </Button>
+            </div>
 
-      {response.conversationId && (
-        <div className="mt-2 small text-muted">
-          Conversation ID: {response.conversationId}
-        </div>
-      )}
-    </div>
-  );
-}
+            <Card className="mb-3 shadow-sm border-primary">
+              <Card.Body>
+                <ListGroup variant="flush">
+                  <ListGroup.Item>
+                    <strong>State:</strong> <Badge bg="success">{a.state}</Badge>
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    <strong>Work Type:</strong> {a.workType}
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    <strong>Max Points:</strong> {a.maxPoints}
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    <strong>Created:</strong> {new Date(a.creationTime).toLocaleString()}
+                  </ListGroup.Item>
+                  <ListGroup.Item>
+                    <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
+                  </ListGroup.Item>
+                  {a.assignment?.studentWorkFolder?.id && (
+                    <ListGroup.Item>
+                      <strong>Student Work Folder:</strong>{" "}
+                      <a
+                        href={`https://drive.google.com/drive/folders/${a.assignment.studentWorkFolder.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open in Google Drive
+                      </a>
+                    </ListGroup.Item>
+                  )}
+                  {a.alternateLink && (
+                    <ListGroup.Item>
+                      <a
+                        href={a.alternateLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary"
+                      >
+                        View in Google Classroom
+                      </a>
+                    </ListGroup.Item>
+                  )}
+                </ListGroup>
+              </Card.Body>
+            </Card>
+
+            {response.conversationId && (
+              <div className="mt-2 small text-muted">
+                Conversation ID: {response.conversationId}
+              </div>
+            )}
+          </div>
+        );
+      }
 
 
       // Custom: Render confirm email send response
@@ -939,7 +906,7 @@ if (response.assignment && typeof response.assignment === 'object') {
                 title={isSpeaking ? 'Stop speech' : 'Read aloud'}
               >
                 <IconifyIcon 
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'} 
                   width={16} 
                 />
               </Button>
@@ -993,7 +960,7 @@ if (response.assignment && typeof response.assignment === 'object') {
               <Card.Body>
                 {response.message && (
                   <div className="mb-3" style={{ whiteSpace: 'pre-line' }}>
-                    <span dangerouslySetInnerHTML={{ __html: response.message.replace(/\n/g, '<br/>') }} />
+                    <span dangerouslySetInnerHTML={{ __html: response.message.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
                   </div>
                 )}
                 <table className="table table-bordered table-sm mb-0">
@@ -1007,8 +974,16 @@ if (response.assignment && typeof response.assignment === 'object') {
                       <td>{meeting.status}</td>
                     </tr>
                     <tr>
-                      <td><span className="badge bg-info text-dark">Date</span></td>
+                      <td><span className="badge bg-info text-dark">Start</span></td>
                       <td>{meeting.start?.dateTime ? formatDateTime(meeting.start.dateTime) : ''}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">End</span></td>
+                      <td>{meeting.end?.dateTime ? formatDateTime(meeting.end.dateTime) : ''}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Time Zone</span></td>
+                      <td>{meeting.start?.timeZone || meeting.end?.timeZone || 'N/A'}</td>
                     </tr>
                     <tr>
                       <td><span className="badge bg-info text-dark">Duration</span></td>
@@ -1016,11 +991,27 @@ if (response.assignment && typeof response.assignment === 'object') {
                     </tr>
                     <tr>
                       <td><span className="badge bg-info text-dark">Attendees</span></td>
-                      <td>{meeting.attendees && meeting.attendees.length > 0 ? meeting.attendees.map(a => a.email).join(', ') : 'N/A'}</td>
+                      <td>{meeting.attendees && meeting.attendees.length > 0 ? meeting.attendees.map(a => `${a.email} (${a.responseStatus})`).join(', ') : 'N/A'}</td>
                     </tr>
                     <tr>
                       <td><span className="badge bg-info text-dark">Calendar Link</span></td>
                       <td>{meeting.htmlLink ? <a href={meeting.htmlLink} target="_blank" rel="noopener noreferrer">View in Google Calendar</a> : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Created</span></td>
+                      <td>{meeting.created ? formatDateTime(meeting.created) : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Updated</span></td>
+                      <td>{meeting.updated ? formatDateTime(meeting.updated) : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Creator</span></td>
+                      <td>{meeting.creator?.email || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td><span className="badge bg-info text-dark">Organizer</span></td>
+                      <td>{meeting.organizer?.email || 'N/A'}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1062,7 +1053,7 @@ if (response.assignment && typeof response.assignment === 'object') {
                 title={isSpeaking ? 'Stop speech' : 'Read aloud'}
               >
                 <IconifyIcon 
-                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'} 
                   width={16} 
                 />
               </Button>
@@ -1193,8 +1184,6 @@ if (response.assignment && typeof response.assignment === 'object') {
         let text = '';
         if (typeof data === 'string') {
           text = data;
-        } else if (data && data.response && data.response.message) {
-          text = data.response.message;
         } else if (data && data.message) {
           text = data.message;
         } else {
@@ -1488,4 +1477,3 @@ if (response.assignment && typeof response.assignment === 'object') {
     </Card>
   );
 }
-
