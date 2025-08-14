@@ -3,32 +3,72 @@
 import { Draggable } from '@fullcalendar/interaction';
 import { useEffect, useState } from 'react';
 import { defaultEvents } from './data';
+
 const useCalendar = () => {
   const [show, setShow] = useState(false);
-  const onOpenModal = () => setShow(true);
   const [isEditable, setIsEditable] = useState(false);
-  const [events, setEvents] = useState([...defaultEvents]);
+  const [events, setEvents] = useState([]);
   const [eventData, setEventData] = useState();
   const [dateInfo, setDateInfo] = useState();
+
+  const onOpenModal = () => setShow(true);
   const onCloseModal = () => {
     setEventData(undefined);
     setDateInfo(undefined);
     setShow(false);
   };
+
+  // ✅ Load Google Calendar events directly
   useEffect(() => {
-    // create draggable events
+    const token = localStorage.getItem("token"); // Google OAuth access_token
+    console.log("🔑 Stored Token:", token); // log token
+
+    if (!token) {
+      console.warn("⚠ No token found in localStorage.");
+      return;
+    }
+
+    fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("📅 Google Calendar API Response:", data); // log response
+        if (data.items) {
+          const googleEvents = data.items.map(event => ({
+            id: event.id,
+            title: event.summary || "No Title",
+            start: event.start?.dateTime || event.start?.date,
+            end: event.end?.dateTime || event.end?.date,
+            className: "bg-primary"
+          }));
+          setEvents(googleEvents);
+        } else {
+          setEvents(defaultEvents);
+        }
+      })
+      .catch(err => {
+        console.error("❌ Google Calendar fetch error:", err);
+        setEvents(defaultEvents);
+      });
+  }, []);
+
+  // ✅ Setup draggable events
+  useEffect(() => {
     const draggableEl = document.getElementById('external-events');
     if (draggableEl) {
-      new Draggable(draggableEl, {
-        itemSelector: '.external-event'
-      });
+      new Draggable(draggableEl, { itemSelector: '.external-event' });
     }
   }, []);
+
   const onDateClick = arg => {
     setDateInfo(arg);
     onOpenModal();
     setIsEditable(false);
   };
+
   const onEventClick = arg => {
     const event = {
       id: String(arg.event.id),
@@ -39,70 +79,58 @@ const useCalendar = () => {
     setIsEditable(true);
     onOpenModal();
   };
+
   const onDrop = arg => {
-    const dropEventData = arg;
-    const title = dropEventData.draggedEl.title;
+    const title = arg.draggedEl.title;
     if (title) {
       const newEvent = {
         id: String(events.length + 1),
-        title: title,
-        start: dropEventData ? dropEventData.dateStr : new Date(),
-        className: dropEventData.draggedEl.dataset.class
+        title,
+        start: arg.dateStr,
+        className: arg.draggedEl.dataset.class
       };
-      const modifiedEvents = [...events];
-      modifiedEvents.push(newEvent);
-      setEvents(modifiedEvents);
+      setEvents(prev => [...prev, newEvent]);
     }
   };
+
   const onAddEvent = data => {
-    const modifiedEvents = [...events];
     const event = {
-      id: String(modifiedEvents.length + 1),
+      id: String(events.length + 1),
       title: data.title,
-      start: Object.keys(dateInfo ?? {}).length !== 0 ? dateInfo?.date : new Date(),
+      start: dateInfo?.date || new Date(),
       className: data.category
     };
-    modifiedEvents.push(event);
-    setEvents(modifiedEvents);
+    setEvents(prev => [...prev, event]);
     onCloseModal();
   };
+
   const onUpdateEvent = data => {
-    console.info(data);
-    setEvents(events.map(e => {
-      if (e.id === eventData?.id) {
-        return {
-          ...e,
-          title: data.title,
-          className: data.category
-        };
-      } else {
-        return e;
-      }
-    }));
+    setEvents(events.map(e => 
+      e.id === eventData?.id ? { ...e, title: data.title, className: data.category } : e
+    ));
     onCloseModal();
     setIsEditable(false);
   };
+
   const onRemoveEvent = () => {
-    const modifiedEvents = [...events];
-    const idx = modifiedEvents.findIndex(e => e.id === eventData?.id);
-    modifiedEvents.splice(idx, 1);
-    setEvents(modifiedEvents);
+    setEvents(events.filter(e => e.id !== eventData?.id));
     onCloseModal();
   };
+
   const onEventDrop = arg => {
-    const modifiedEvents = [...events];
-    const idx = modifiedEvents.findIndex(e => e.id === arg.event.id);
-    modifiedEvents[idx].title = arg.event.title;
-    modifiedEvents[idx].className = arg.event.classNames;
-    modifiedEvents[idx].start = arg.event.start;
-    modifiedEvents[idx].end = arg.event.end;
-    setEvents(modifiedEvents);
+    setEvents(events.map(e =>
+      e.id === arg.event.id
+        ? { ...e, title: arg.event.title, start: arg.event.start, end: arg.event.end }
+        : e
+    ));
     setIsEditable(false);
   };
+
   const createNewEvent = () => {
     setIsEditable(false);
     onOpenModal();
   };
+
   return {
     createNewEvent,
     show,
@@ -119,4 +147,5 @@ const useCalendar = () => {
     onAddEvent
   };
 };
+
 export default useCalendar;
