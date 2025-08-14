@@ -8,6 +8,8 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
 
 export default function ClassDetailView({ classId }) {
   // State management
@@ -832,37 +834,39 @@ export default function ClassDetailView({ classId }) {
               </Tab.Pane>
 
               {/* Calendar Tab */}
-              <Tab.Pane eventKey="calendar" className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4>Calendar</h4>
-                </div>
-                <Card className="border-0 shadow-sm">
-                  <CardBody>
-                    <h5 className="mb-3">Events</h5>
-                    {events.length === 0 ? (
-                      <p className="text-muted">No events found</p>
-                    ) : (
-                      <ListGroup>
-                        {events.map((event) => (
-                          <ListGroupItem key={event.id}>
-                            <div className="fw-bold">{event.summary || 'Untitled Event'}</div>
-                            <small className="text-muted">
-                              {event.start && event.start.dateTime
-                                ? new Date(event.start.dateTime).toLocaleString()
-                                : 'No start time'} - {event.end && event.end.dateTime
-                                ? new Date(event.end.dateTime).toLocaleString()
-                                : 'No end time'}
-                            </small>
-                            {event.description && (
-                              <p className="mt-2 mb-0">{event.description}</p>
-                            )}
-                          </ListGroupItem>
-                        ))}
-                      </ListGroup>
-                    )}
-                  </CardBody>
-                </Card>
-              </Tab.Pane>
+              <Tab.Pane eventKey="calendar">
+    <Card>
+      <CardHeader className="d-flex justify-content-between align-items-center">
+        <CardTitle as="h5" className="m-0">Calendar</CardTitle>
+      </CardHeader>
+      <CardBody>
+        <FullCalendar
+          plugins={[dayGridPlugin]} // Add more plugins as needed
+          initialView="dayGridMonth" // Set the initial view (e.g., month, week, day)
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,dayGridDay' // Add other views
+          }}
+          events={events.map(event => ({
+            id: event.id,
+            title: event.summary || 'Untitled Event',
+            start: event.start && event.start.dateTime,
+            end: event.end && event.end.dateTime,
+            description: event.description
+          }))}
+          eventContent={(arg) => {
+            return (
+              <div className="event-tooltip" title={arg.event.extendedProps.description}>
+                <b>{arg.event.title}</b>
+              </div>
+            );
+          }}
+          // You can add more props and event handlers here
+        />
+      </CardBody>
+    </Card>
+  </Tab.Pane>
             </Tab.Content>
           </Tab.Container>
         </CardBody>
