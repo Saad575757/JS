@@ -8,7 +8,7 @@ const AuthLogo = () => {
         <Image src={logo} alt="logo" height={60} />
       </Link>
       <Link href="/" className="logo-dark">
-        <Image src={logoDark} alt="dark logo" height={28} />
+        <Image src={logoDark} alt="dark logo" height={60} />
       </Link>
     </div>;
 };

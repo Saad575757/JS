@@ -20,10 +20,10 @@ const Error500 = () => {
                   <div className="d-flex flex-column h-100">
                     <div className="auth-brand p-4 text-center">
                       <Link href="/" className="logo-light">
-                        <Image src={logo} alt="logo" height={28} />
+                        <Image src={logo} alt="logo" height={40} />
                       </Link>
                       <Link href="/" className="logo-dark">
-                        <Image src={logoDark} alt="dark logo" height={28} />
+                        <Image src={logoDark} alt="dark logo" height={40} />
                       </Link>
                     </div>
                     <div className="p-4 mt-auto">
