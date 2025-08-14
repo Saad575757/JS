@@ -1,3 +1,17 @@
+// Custom render for event content in FullCalendar
+function renderEventContent(eventInfo) {
+  return (
+    <div>
+      <b>{eventInfo.event.title}</b>
+      {eventInfo.event.extendedProps.description && (
+        <div style={{ fontSize: '0.85em', color: '#888' }}>
+          {eventInfo.event.extendedProps.description}
+        </div>
+      )}
+    </div>
+  );
+}
+import React from 'react';
 'use client';
 import { 
   Button, Card, CardBody, CardHeader, CardTitle,
@@ -5,6 +19,9 @@ import {
   ListGroupItem, InputGroup, FormControl, Dropdown,
   Form, Col, Row, Modal, Table, ProgressBar
 } from 'react-bootstrap';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
@@ -301,7 +318,9 @@ export default function ClassDetailView({ classId }) {
     const fetchEvents = async () => {
       try {
         const token = localStorage.getItem('token');
-        const url = 'https://class.xytek.ai/api/calendar/c_classroomdf8d5062@group.calendar.google.com/events';
+        // Use calendarId from classData if available, fallback to default
+        const calendarId = classData?.calendarId || 'c_classroomdf8d5062@group.calendar.google.com';
+        const url = `https://class.xytek.ai/api/calendar/${calendarId}/events`;
         const response = await fetch(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -324,8 +343,9 @@ export default function ClassDetailView({ classId }) {
         console.error('Fetch events error:', err);
       }
     };
-    fetchEvents();
-  }, []);
+    // Only fetch when classData is loaded
+    if (classData) fetchEvents();
+  }, [classData]);
 
   // Loading state
   if (loading) return <Container className="py-4">Loading...</Container>;
@@ -833,30 +853,22 @@ export default function ClassDetailView({ classId }) {
                 <div className="d-flex justify-content-between align-items-center mb-4">
                   <h4>Calendar</h4>
                 </div>
-                <Card className="border-0 shadow-sm">
+                <Card className="border-0 shadow-sm mb-4">
                   <CardBody>
-                    <h5 className="mb-3">Events</h5>
-                    {events.length === 0 ? (
-                      <p className="text-muted">No events found</p>
-                    ) : (
-                      <ListGroup>
-                        {events.map((event) => (
-                          <ListGroupItem key={event.id}>
-                            <div className="fw-bold">{event.summary || 'Untitled Event'}</div>
-                            <small className="text-muted">
-                              {event.start && event.start.dateTime
-                                ? new Date(event.start.dateTime).toLocaleString()
-                                : 'No start time'} - {event.end && event.end.dateTime
-                                ? new Date(event.end.dateTime).toLocaleString()
-                                : 'No end time'}
-                            </small>
-                            {event.description && (
-                              <p className="mt-2 mb-0">{event.description}</p>
-                            )}
-                          </ListGroupItem>
-                        ))}
-                      </ListGroup>
-                    )}
+                    <h5 className="mb-3">Events Calendar</h5>
+                    <FullCalendar
+                      plugins={[dayGridPlugin, interactionPlugin]}
+                      initialView="dayGridMonth"
+                      events={events.map(event => ({
+                        id: event.id,
+                        title: event.summary || 'Untitled Event',
+                        start: event.start?.dateTime || event.start?.date,
+                        end: event.end?.dateTime || event.end?.date,
+                        description: event.description
+                      }))}
+                      eventContent={renderEventContent}
+                      height={600}
+                    />
                   </CardBody>
                 </Card>
               </Tab.Pane>
