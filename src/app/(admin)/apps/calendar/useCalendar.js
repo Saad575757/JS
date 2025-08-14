@@ -1,28 +1,30 @@
 'use client';
 
-import { Draggable } from '@fullcalendar/interaction';
 import { useEffect, useState } from 'react';
-import { defaultEvents } from './data';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import googleCalendarPlugin from '@fullcalendar/google-calendar';
+import interactionPlugin from '@fullcalendar/interaction';
+import { Draggable } from '@fullcalendar/interaction';
 
-const useCalendar = () => {
-  const [show, setShow] = useState(false);
-  const [isEditable, setIsEditable] = useState(false);
-  const [events, setEvents] = useState([]);
-  const [eventData, setEventData] = useState();
-  const [dateInfo, setDateInfo] = useState();
-
-  // Store API key + Calendar ID in localStorage (user provides these in your UI)
+export default function GoogleCalendarPage() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem("googleApiKey") || "");
   const [calendarId, setCalendarId] = useState(() => localStorage.getItem("googleCalendarId") || "");
+  const [keyInput, setKeyInput] = useState(apiKey);
+  const [idInput, setIdInput] = useState(calendarId);
 
-  const onOpenModal = () => setShow(true);
-  const onCloseModal = () => {
-    setEventData(undefined);
-    setDateInfo(undefined);
-    setShow(false);
+  const [events, setEvents] = useState([]);
+
+  // Save settings
+  const handleSave = () => {
+    localStorage.setItem("googleApiKey", keyInput);
+    localStorage.setItem("googleCalendarId", idInput);
+    setApiKey(keyInput);
+    setCalendarId(idInput);
+    alert("✅ Google Calendar settings saved!");
   };
 
-  // ✅ Load Google Calendar events directly (public calendar)
+  // Fetch Google Calendar events
   useEffect(() => {
     if (!apiKey || !calendarId) {
       console.warn("⚠ Google API Key or Calendar ID not set");
@@ -41,21 +43,20 @@ const useCalendar = () => {
             id: event.id,
             title: event.summary || "No Title",
             start: event.start?.dateTime || event.start?.date,
-            end: event.end?.dateTime || event.end?.date,
-            className: "bg-primary"
+            end: event.end?.dateTime || event.end?.date
           }));
           setEvents(googleEvents);
         } else {
-          setEvents(defaultEvents);
+          setEvents([]);
         }
       })
       .catch(err => {
         console.error("❌ Google Calendar fetch error:", err);
-        setEvents(defaultEvents);
+        setEvents([]);
       });
   }, [apiKey, calendarId]);
 
-  // ✅ Setup draggable events
+  // Make external events draggable (if needed)
   useEffect(() => {
     const draggableEl = document.getElementById('external-events');
     if (draggableEl) {
@@ -63,91 +64,55 @@ const useCalendar = () => {
     }
   }, []);
 
-  const onDateClick = arg => {
-    setDateInfo(arg);
-    onOpenModal();
-    setIsEditable(false);
-  };
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>📅 Google Calendar Integration</h2>
 
-  const onEventClick = arg => {
-    const event = {
-      id: String(arg.event.id),
-      title: arg.event.title,
-      className: arg.event.classNames[0]
-    };
-    setEventData(event);
-    setIsEditable(true);
-    onOpenModal();
-  };
+      {/* Setup fields */}
+      <div style={{ marginBottom: 20, padding: 10, border: '1px solid #ddd', borderRadius: 5 }}>
+        <label style={{ display: 'block', marginBottom: 5 }}>Google API Key:</label>
+        <input
+          type="text"
+          value={keyInput}
+          onChange={(e) => setKeyInput(e.target.value)}
+          placeholder="Enter your Google API Key"
+          style={{ width: "100%", padding: 8, marginBottom: 10 }}
+        />
 
-  const onDrop = arg => {
-    const title = arg.draggedEl.title;
-    if (title) {
-      const newEvent = {
-        id: String(events.length + 1),
-        title,
-        start: arg.dateStr,
-        className: arg.draggedEl.dataset.class
-      };
-      setEvents(prev => [...prev, newEvent]);
-    }
-  };
+        <label style={{ display: 'block', marginBottom: 5 }}>Google Calendar ID:</label>
+        <input
+          type="text"
+          value={idInput}
+          onChange={(e) => setIdInput(e.target.value)}
+          placeholder="example@gmail.com or calendar ID"
+          style={{ width: "100%", padding: 8, marginBottom: 10 }}
+        />
 
-  const onAddEvent = data => {
-    const event = {
-      id: String(events.length + 1),
-      title: data.title,
-      start: dateInfo?.date || new Date(),
-      className: data.category
-    };
-    setEvents(prev => [...prev, event]);
-    onCloseModal();
-  };
+        <button
+          onClick={handleSave}
+          style={{
+            padding: "8px 16px",
+            background: "#007bff",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer"
+          }}
+        >
+          Save Settings
+        </button>
+      </div>
 
-  const onUpdateEvent = data => {
-    setEvents(events.map(e => 
-      e.id === eventData?.id ? { ...e, title: data.title, className: data.category } : e
-    ));
-    onCloseModal();
-    setIsEditable(false);
-  };
-
-  const onRemoveEvent = () => {
-    setEvents(events.filter(e => e.id !== eventData?.id));
-    onCloseModal();
-  };
-
-  const onEventDrop = arg => {
-    setEvents(events.map(e =>
-      e.id === arg.event.id
-        ? { ...e, title: arg.event.title, start: arg.event.start, end: arg.event.end }
-        : e
-    ));
-    setIsEditable(false);
-  };
-
-  const createNewEvent = () => {
-    setIsEditable(false);
-    onOpenModal();
-  };
-
-  return {
-    createNewEvent,
-    show,
-    onDateClick,
-    onEventClick,
-    onDrop,
-    onEventDrop,
-    events,
-    onCloseModal,
-    isEditable,
-    eventData,
-    onUpdateEvent,
-    onRemoveEvent,
-    onAddEvent,
-    setApiKey,       // expose setter so UI can update
-    setCalendarId,   // expose setter so UI can update
-  };
-};
-
-export default useCalendar;
+      {/* Calendar */}
+      {apiKey && calendarId ? (
+        <FullCalendar
+          plugins={[dayGridPlugin, googleCalendarPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          events={events}
+          height="80vh"
+        />
+      ) : (
+        <p>⚠ Please enter your Google API Key & Calendar ID to view events.</p>
+      )}
+    </div>
+  );
+}
