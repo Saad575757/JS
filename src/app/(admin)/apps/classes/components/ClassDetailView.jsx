@@ -293,6 +293,40 @@ export default function ClassDetailView({ classId }) {
     }
   };
 
+  // Calendar events state
+  const [events, setEvents] = useState([]);
+
+  // Fetch calendar events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const url = 'https://class.xytek.ai/api/calendar/c_classroomdf8d5062@group.calendar.google.com/events';
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else if (data && Array.isArray(data.items)) {
+          setEvents(data.items);
+        } else {
+          setEvents([]);
+        }
+      } catch (err) {
+        setEvents([]);
+        console.error('Fetch events error:', err);
+      }
+    };
+    fetchEvents();
+  }, []);
+
   // Loading state
   if (loading) return <Container className="py-4">Loading...</Container>;
   
@@ -473,6 +507,9 @@ export default function ClassDetailView({ classId }) {
               </Nav.Item>
               <Nav.Item>
                 <Nav.Link eventKey="grades">Grades</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="calendar">Calendar</Nav.Link>
               </Nav.Item>
             </Nav>
             
@@ -787,6 +824,39 @@ export default function ClassDetailView({ classId }) {
                       <ProgressBar variant="danger" now={10} key={4} />
                       <ProgressBar variant="dark" now={5} key={5} />
                     </ProgressBar>
+                  </CardBody>
+                </Card>
+              </Tab.Pane>
+
+              {/* Calendar Tab */}
+              <Tab.Pane eventKey="calendar" className="p-4">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                  <h4>Calendar</h4>
+                </div>
+                <Card className="border-0 shadow-sm">
+                  <CardBody>
+                    <h5 className="mb-3">Events</h5>
+                    {events.length === 0 ? (
+                      <p className="text-muted">No events found</p>
+                    ) : (
+                      <ListGroup>
+                        {events.map((event) => (
+                          <ListGroupItem key={event.id}>
+                            <div className="fw-bold">{event.summary || 'Untitled Event'}</div>
+                            <small className="text-muted">
+                              {event.start && event.start.dateTime
+                                ? new Date(event.start.dateTime).toLocaleString()
+                                : 'No start time'} - {event.end && event.end.dateTime
+                                ? new Date(event.end.dateTime).toLocaleString()
+                                : 'No end time'}
+                            </small>
+                            {event.description && (
+                              <p className="mt-2 mb-0">{event.description}</p>
+                            )}
+                          </ListGroupItem>
+                        ))}
+                      </ListGroup>
+                    )}
                   </CardBody>
                 </Card>
               </Tab.Pane>
