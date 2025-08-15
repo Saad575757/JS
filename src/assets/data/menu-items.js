@@ -15,12 +15,7 @@ export const MENU_ITEMS = [{
   key: 'apps',
   label: 'App',
   isTitle: true
-}, {
-  key: 'apps-calendar',
-  icon: 'ri:calendar-line',
-  label: 'Calendar',
-  url: '/apps/calendar'
-},
+}, 
 {
   key: 'apps-classes',
   icon: 'ri:calendar-line',
