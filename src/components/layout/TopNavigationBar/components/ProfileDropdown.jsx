@@ -100,7 +100,7 @@ const ProfileDropdown = () => {
           <IconifyIcon icon="ri:account-pin-circle-line" className="fs-16 align-middle me-1" />
           <span>My Account</span>
         </Link>
-        <Link href="/pages/profile" className="dropdown-item">
+        {/* <Link href="/pages/profile" className="dropdown-item">
           <IconifyIcon icon="ri:settings-4-line" className="fs-16 align-middle me-1" />
           <span>Settings</span>
         </Link>
@@ -111,7 +111,7 @@ const ProfileDropdown = () => {
         <Link href="/auth/lock-screen" className="dropdown-item">
           <IconifyIcon icon="ri:lock-line" className="fs-16 align-middle me-1" />
           <span>Lock Screen</span>
-        </Link>
+        </Link> */}
         <Link href="/auth/logout" onClick={handleLogout} className="dropdown-item">
           <IconifyIcon icon="ri:logout-circle-r-line" className="align-middle me-1" />
           <span>Logout</span>
