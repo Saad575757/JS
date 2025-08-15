@@ -858,7 +858,9 @@ export default function ClassDetailView({ classId }) {
   eventContent={(arg) => {
     return (
       <div className="event-content">
-        <b>{arg.event.title}</b> {/* Show the title directly */}
+          <b style={{ color: (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? '#fff' : '#212529' }}>
+            {arg.event.title}
+          </b> {/* Show the title directly */}
       </div>
     );
   }}
