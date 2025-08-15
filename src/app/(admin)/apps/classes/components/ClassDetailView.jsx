@@ -471,7 +471,7 @@ export default function ClassDetailView({ classId }) {
         <CardHeader className="text-white rounded-top">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <CardTitle className="fs-3 mb-1">{classData.name}</CardTitle>
+              <CardTitle className="fs-3 mb-1 text-primary">{classData.name}</CardTitle>
               <div className="text-white-50">
                 {classData.section && <span>{classData.section}</span>}
                 {classData.section && classData.room && <span> • </span>}
@@ -589,30 +589,14 @@ export default function ClassDetailView({ classId }) {
                           <div className="text-muted small">Teacher</div>
                           <div className="fw-bold">Saad khan</div>
                         </div>
-                        <div>
-                          <div className="text-muted small">Schedule</div>
-                          <div className="fw-bold">Mon, Wed, Fri • 10:00 AM</div>
-                        </div>
+                        <div className="mb-3">
+                          <div className="text-muted small">Section</div>
+                          <div className="fw-bold">{classData.section || 'N/A'}</div>
+                          </div>
                       </CardBody>
                     </Card>
                     
-                    {/* Class Materials Card */}
-                    <Card className="border-0 shadow-sm">
-                      <CardBody>
-                        <h6 className="mb-3">Class materials</h6>
-                        <div className="d-flex align-items-center mb-2">
-                          <IconifyIcon icon="mdi:file-document-outline" className="me-2" />
-                          <span>Syllabus.pdf</span>
-                        </div>
-                        <div className="d-flex align-items-center mb-2">
-                          <IconifyIcon icon="mdi:file-pdf-box" className="me-2" />
-                          <span>Reading List.pdf</span>
-                        </div>
-                        <Button variant="link" className="p-0 text-decoration-none">
-                          View all materials
-                        </Button>
-                      </CardBody>
-                    </Card>
+                    
                   </Col>
                 </Row>
               </Tab.Pane>
@@ -679,20 +663,7 @@ export default function ClassDetailView({ classId }) {
                   </CardBody>
                 </Card>
                 
-                <Card className="border-0 shadow-sm">
-                  <CardBody>
-                    <h5 className="mb-3">Classwork Topics</h5>
-                    <div className="d-flex flex-wrap gap-2">
-                      <Badge pill bg="light" text="dark" className="fs-6 p-2">
-                        <IconifyIcon icon="mdi:plus" className="me-1" />
-                        Add topic
-                      </Badge>
-                      <Badge pill bg="primary" className="fs-6 p-2">React Basics</Badge>
-                      <Badge pill bg="primary" className="fs-6 p-2">State Management</Badge>
-                      <Badge pill bg="primary" className="fs-6 p-2">Component Lifecycle</Badge>
-                    </div>
-                  </CardBody>
-                </Card>
+                
               </Tab.Pane>
               
               {/* People Tab */}
@@ -730,7 +701,6 @@ export default function ClassDetailView({ classId }) {
                         </div>
                         <h5>No students found</h5>
                         <p className="text-muted mb-3">You haven&apos;t added any students to this class yet</p>
-                        <Button variant="primary" onClick={handleInviteClick}>Invite students</Button>
                       </CardBody>
                     </Card>
                   ) : (
@@ -857,7 +827,7 @@ export default function ClassDetailView({ classId }) {
   }))}
   eventContent={(arg) => {
     return (
-      <div className="bg-primary text-white p-2 rounded">
+      <div className="text-primary">
         <b>{arg.event.title}</b> {/* Show the title directly */}
       </div>
     );
