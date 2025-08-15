@@ -471,7 +471,7 @@ export default function ClassDetailView({ classId }) {
         <CardHeader className="text-white rounded-top">
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <CardTitle className="fs-3 mb-1">{classData.name}</CardTitle>
+              <CardTitle className="fs-3 mb-1 text-primary">{classData.name}</CardTitle>
               <div className="text-white-50">
                 {classData.section && <span>{classData.section}</span>}
                 {classData.section && classData.room && <span> • </span>}
@@ -743,21 +743,27 @@ export default function ClassDetailView({ classId }) {
                           <th>Status</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {grades.map((grade, idx) => (
-                          <tr key={idx}>
-                            <td>{grade.studentId}</td>
-                            <td>{grade.assignmentTitle}</td>
-                            <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
-                            <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
-                            <td>
-                              <Badge bg={grade.state === 'RETURNED' ? 'success' : grade.state === 'TURNED_IN' ? 'info' : 'secondary'}>
-                                {grade.state}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
+                        <tbody>
+                          {grades.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="text-center text-muted">No grades history found.</td>
+                            </tr>
+                          ) : (
+                            grades.map((grade, idx) => (
+                              <tr key={idx}>
+                                <td>{grade.studentId}</td>
+                                <td>{grade.assignmentTitle}</td>
+                                <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
+                                <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
+                                <td>
+                                  <Badge bg={grade.state === 'RETURNED' ? 'success' : grade.state === 'TURNED_IN' ? 'info' : 'secondary'}>
+                                    {grade.state}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
                     </Table>
                   </CardBody>
                 </Card>
@@ -811,36 +817,37 @@ export default function ClassDetailView({ classId }) {
       </CardHeader>
       <CardBody>
         <FullCalendar
-  plugins={[dayGridPlugin]}
-  initialView="dayGridMonth"
-  headerToolbar={{
-    left: 'prev,next today',
-    center: 'title',
-    right: 'dayGridMonth,dayGridWeek,dayGridDay'
-  }}
-  events={events.map(event => ({
-    id: event.id,
-    title: event.summary || 'Untitled Event',
-    start: event.start && event.start.dateTime,
-    end: event.end && event.end.dateTime,
-    description: event.description
-  }))}
-  eventContent={(arg) => {
-    return (
-      <div className="primary-text">
-        <b>{arg.event.title}</b> {/* Show the title directly */}
-      </div>
-    );
-  }}
-  eventRender={(info) => {
-    // Make sure the event title is always visible (in case you want to override any default settings)
-    const eventElement = info.el;
-    const titleElement = eventElement.querySelector('.fc-event-title');
-    if (titleElement) {
-      titleElement.style.visibility = 'visible';  // Ensure visibility of the event title
-    }
-  }}
-/>
+          plugins={[dayGridPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,dayGridDay'
+          }}
+          events={events.map(event => ({
+            id: event.id,
+            title: event.summary || 'Untitled Event',
+            start: event.start && event.start.dateTime,
+            end: event.end && event.end.dateTime,
+            description: event.description
+          }))}
+          height={500}
+          eventContent={(arg) => {
+            return (
+              <div className="primary-text">
+                <b>{arg.event.title}</b> {/* Show the title directly */}
+              </div>
+            );
+          }}
+          eventRender={(info) => {
+            // Make sure the event title is always visible (in case you want to override any default settings)
+            const eventElement = info.el;
+            const titleElement = eventElement.querySelector('.fc-event-title');
+            if (titleElement) {
+              titleElement.style.visibility = 'visible';  // Ensure visibility of the event title
+            }
+          }}
+        />
 
       </CardBody>
     </Card>
