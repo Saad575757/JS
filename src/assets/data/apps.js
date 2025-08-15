@@ -181,7 +181,7 @@ export const invoicesData = [{
   product: 'Glassmorphisam UL kit',
   date: addOrSubtractDaysFromDate(75),
   amount: 86.0,
-  vendor: 'Techzaa',
+  vendor: 'Xytek',
   status: 'Unpaid',
   review: {
     rate: 4.0,
@@ -205,7 +205,7 @@ export const invoicesData = [{
   product: 'Dashboard UI',
   date: addOrSubtractDaysFromDate(45),
   amount: 98.0,
-  vendor: 'Techzaa',
+  vendor: 'Xytek',
   status: 'Paid',
   review: {
     rate: 4.8,

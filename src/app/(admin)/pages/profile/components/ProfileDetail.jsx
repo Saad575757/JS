@@ -162,7 +162,7 @@ const Projects = () => {
                       {project.status}
                     </span>
                   </td>
-                  <td>Techzaa</td>
+                  <td>Xytek</td>
                 </tr>
               ))}
             </tbody>
