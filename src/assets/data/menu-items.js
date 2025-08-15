@@ -6,10 +6,6 @@ export const MENU_ITEMS = [{
   key: 'dashboard',
   icon: 'ri:dashboard-2-line',
   label: 'Dashboard',
-  badge: {
-    text: '9+',
-    variant: 'success'
-  },
   url: '/dashboard'
 }, {
   key: 'apps',

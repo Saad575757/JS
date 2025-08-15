@@ -743,21 +743,27 @@ export default function ClassDetailView({ classId }) {
                           <th>Status</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {grades.map((grade, idx) => (
-                          <tr key={idx}>
-                            <td>{grade.studentId}</td>
-                            <td>{grade.assignmentTitle}</td>
-                            <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
-                            <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
-                            <td>
-                              <Badge bg={grade.state === 'RETURNED' ? 'success' : grade.state === 'TURNED_IN' ? 'info' : 'secondary'}>
-                                {grade.state}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
+                        <tbody>
+                          {grades.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="text-center text-muted">No grades history found.</td>
+                            </tr>
+                          ) : (
+                            grades.map((grade, idx) => (
+                              <tr key={idx}>
+                                <td>{grade.studentId}</td>
+                                <td>{grade.assignmentTitle}</td>
+                                <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
+                                <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
+                                <td>
+                                  <Badge bg={grade.state === 'RETURNED' ? 'success' : grade.state === 'TURNED_IN' ? 'info' : 'secondary'}>
+                                    {grade.state}
+                                  </Badge>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
                     </Table>
                   </CardBody>
                 </Card>
