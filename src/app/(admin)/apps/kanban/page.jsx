@@ -235,35 +235,37 @@ const ClassCards = () => {
             <Card className="h-100 shadow-sm">
               <CardHeader className="d-flex justify-content-between align-items-center">
                 <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                <Dropdown>
-                  <Dropdown.Toggle 
-                    variant="link" 
-                    id={`dropdown-${classItem.id || classItem._id}`}
-                    className="text-dark p-0 shadow-none"
-                  >
-                    <i className="bi bi-three-dots-vertical"></i>
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => handleEdit(classItem)}>
-                      Edit
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => handleCopy(classItem)}>
-                      Copy
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => handleMove(classItem)}>
-                      Move
-                    </Dropdown.Item>
-                    <Dropdown.Divider />
-                    <Dropdown.Item 
-                      className="text-danger" 
-                      onClick={() => handleArchive(classItem)}
-                      disabled={archiveLoading}
+                {typeof window !== 'undefined' && localStorage.getItem('role') !== 'student' && (
+                  <Dropdown>
+                    <Dropdown.Toggle 
+                      variant="link" 
+                      id={`dropdown-${classItem.id || classItem._id}`}
+                      className="text-dark p-0 shadow-none"
                     >
-                      {archiveLoading ? 'Archiving...' : 'Archive'}
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
+                      <i className="bi bi-three-dots-vertical"></i>
+                    </Dropdown.Toggle>
+
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleEdit(classItem)}>
+                        Edit
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleCopy(classItem)}>
+                        Copy
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleMove(classItem)}>
+                        Move
+                      </Dropdown.Item>
+                      <Dropdown.Divider />
+                      <Dropdown.Item 
+                        className="text-danger" 
+                        onClick={() => handleArchive(classItem)}
+                        disabled={archiveLoading}
+                      >
+                        {archiveLoading ? 'Archiving...' : 'Archive'}
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                )}
               </CardHeader>
               <CardBody>
                 <CardTitle className="fs-4">{classItem.name}</CardTitle>
