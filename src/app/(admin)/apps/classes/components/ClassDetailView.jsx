@@ -589,16 +589,7 @@ export default function ClassDetailView({ classId }) {
               
               {/* Classwork Tab */}
               <Tab.Pane eventKey="classwork" className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4>Classwork</h4>
-                  <Button 
-                    variant="primary" 
-                    onClick={() => setShowAssignmentModal(true)}
-                  >
-                    <IconifyIcon icon="mdi:plus" className="me-1" />
-                    Create
-                  </Button>
-                </div>
+                
                 
                 <Card className="mb-4 border-0 shadow-sm">
                   <CardBody>
