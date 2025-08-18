@@ -181,9 +181,10 @@ export default function ChatInput() {
   // Silent one-time refresh when user reaches dashboard (only once per session)
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // If not refreshed yet, set flag and reload
       if (!sessionStorage.getItem('dashboardRefreshed')) {
         sessionStorage.setItem('dashboardRefreshed', 'true');
-        window.location.reload();
+        window.location.replace(window.location.href);
       }
     }
   }, []);
