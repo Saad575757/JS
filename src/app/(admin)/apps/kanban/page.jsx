@@ -1,32 +1,3 @@
-  const handleRestore = async (classItem) => {
-    if (!window.confirm('Are you sure you want to restore this class?')) return;
-    setArchiveLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('token');
-      const classId = classItem.id || classItem._id;
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/restore`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to restore classroom');
-      }
-      setClasses(prev => prev.filter(cls => (cls.id !== classId && cls._id !== classId)));
-      setSuccess('Classroom restored successfully!');
-    } catch (err) {
-      setError(err.message || 'Failed to restore classroom');
-    } finally {
-      setArchiveLoading(false);
-    }
-  };
 // import { Col, Row } from 'react-bootstrap';
 // import Board from './Components/Board';
 // import { KanbanProvider } from '@/context/useKanbanContext';
@@ -264,44 +235,35 @@ const ClassCards = () => {
             <Card className="h-100 shadow-sm">
               <CardHeader className="d-flex justify-content-between align-items-center">
                 <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                {typeof window !== 'undefined' && localStorage.getItem('role') !== 'student' && (
-                  <Dropdown>
-                    <Dropdown.Toggle 
-                      variant="link" 
-                      id={`dropdown-${classItem.id || classItem._id}`}
-                      className="text-dark p-0 shadow-none"
-                    >
-                      <i className="bi bi-three-dots-vertical"></i>
-                    </Dropdown.Toggle>
+                <Dropdown>
+                  <Dropdown.Toggle 
+                    variant="link" 
+                    id={`dropdown-${classItem.id || classItem._id}`}
+                    className="text-dark p-0 shadow-none"
+                  >
+                    <i className="bi bi-three-dots-vertical"></i>
+                  </Dropdown.Toggle>
 
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => handleEdit(classItem)}>
-                        Edit
-                      </Dropdown.Item>
-                      <Dropdown.Item onClick={() => handleCopy(classItem)}>
-                        Copy
-                      </Dropdown.Item>
-                      <Dropdown.Item onClick={() => handleMove(classItem)}>
-                        Move
-                      </Dropdown.Item>
-                      <Dropdown.Divider />
-                      <Dropdown.Item 
-                        className="text-danger" 
-                        onClick={() => handleArchive(classItem)}
-                        disabled={archiveLoading}
-                      >
-                        {archiveLoading ? 'Archiving...' : 'Archive'}
-                      </Dropdown.Item>
-                      <Dropdown.Item 
-                        className="text-success" 
-                        onClick={() => handleRestore(classItem)}
-                        disabled={archiveLoading}
-                      >
-                        {archiveLoading ? 'Restoring...' : 'Restore'}
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                )}
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => handleEdit(classItem)}>
+                      Edit
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => handleCopy(classItem)}>
+                      Copy
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => handleMove(classItem)}>
+                      Move
+                    </Dropdown.Item>
+                    <Dropdown.Divider />
+                    <Dropdown.Item 
+                      className="text-danger" 
+                      onClick={() => handleArchive(classItem)}
+                      disabled={archiveLoading}
+                    >
+                      {archiveLoading ? 'Archiving...' : 'Archive'}
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
               </CardHeader>
               <CardBody>
                 <CardTitle className="fs-4">{classItem.name}</CardTitle>
