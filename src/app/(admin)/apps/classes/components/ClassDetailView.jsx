@@ -529,7 +529,15 @@ export default function ClassDetailView({ classId }) {
                     {/* Announcements List */}
 
                       {announcements.length === 0 ? (
-                        <div className="text-center text-muted my-4">No announcement found</div>
+                        <Card className="border">
+                          <CardBody className="text-center py-5">
+                            <div className="mb-3">
+                              <IconifyIcon icon="mdi:bullhorn" width={48} className="text-muted" />
+                            </div>
+                            <h5>No announcements found</h5>
+                            <p className="text-muted mb-3">There are no announcements for this class yet.</p>
+                          </CardBody>
+                        </Card>
                       ) : (
                         announcements.map(announcement => (
                           <Card key={announcement.id} className="mb-4 border-0 shadow-sm">
@@ -610,7 +618,17 @@ export default function ClassDetailView({ classId }) {
                         <tbody>
                           {assignments.length === 0 ? (
                             <tr>
-                              <td colSpan="5" className="text-center text-muted">No classwork found</td>
+                              <td colSpan="5">
+                                <Card className="border">
+                                  <CardBody className="text-center py-5">
+                                    <div className="mb-3">
+                                      <IconifyIcon icon="mdi:clipboard-text" width={48} className="text-muted" />
+                                    </div>
+                                    <h5>No classwork found</h5>
+                                    <p className="text-muted mb-3">There are no assignments for this class yet.</p>
+                                  </CardBody>
+                                </Card>
+                              </td>
                             </tr>
                           ) : (
                             assignments.map(assignment => (
@@ -730,7 +748,17 @@ export default function ClassDetailView({ classId }) {
                         <tbody>
                           {grades.length === 0 ? (
                             <tr>
-                              <td colSpan="5" className="text-center text-muted">No grades history found.</td>
+                              <td colSpan="5">
+                                <Card className="border">
+                                  <CardBody className="text-center py-5">
+                                    <div className="mb-3">
+                                      <IconifyIcon icon="mdi:chart-bar" width={48} className="text-muted" />
+                                    </div>
+                                    <h5>No grades history found</h5>
+                                    <p className="text-muted mb-3">There are no grades recorded for this class yet.</p>
+                                  </CardBody>
+                                </Card>
+                              </td>
                             </tr>
                           ) : (
                             grades.map((grade, idx) => (
