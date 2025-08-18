@@ -200,80 +200,91 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
   };
 
   return (
+
     <div className="p-4 position-relative" style={{ minHeight: '100vh' }}>
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
 
-      <Row xs={1} md={2} lg={3} className="g-4 mb-5">
-        {currentClasses
-        .map((classItem) => {
-          const classId = classItem.id || classItem._id;
-          return (
-            <Col key={classId}>
-              <Card 
-                className="h-100 shadow-sm transition-all hover-shadow"
-                onClick={() => onClassClick(classId)}
-                style={{ cursor: 'pointer' }}
-              >
-                <CardHeader className="d-flex justify-content-between align-items-center">
-                  <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                  {!isStudent && (
-                    <Dropdown onClick={(e) => e.stopPropagation()}>
-                      <Dropdown.Toggle 
-                        variant="link" 
-                        id={`dropdown-${classId}`}
-                        className="text-dark p-0 shadow-none"
-                      >
-                        {/* Dropdown icon is rendered by default */}
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => handleEdit(classItem)}>
-                          Edit
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => copyClassLink(classId)}>
-                          Copy Invitation Link
-                        </Dropdown.Item>
-                        <Dropdown.Divider />
-                        <Dropdown.Item 
-                          className="text-danger" 
-                          onClick={() => handleArchive(classItem)}
-                          disabled={archiveLoading}
+      {currentClasses.length === 0 ? (
+        <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+          <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="#0d6efd" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10" stroke="#0d6efd" strokeWidth="1.5" fill="#e9f5ff" />
+            <path d="M8 12h8M8 16h5" stroke="#0d6efd" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <h4 className="mt-3 text-primary">No class found</h4>
+          <p className="text-muted">You don't have any classes yet.</p>
+        </div>
+      ) : (
+        <Row xs={1} md={2} lg={3} className="g-4 mb-5">
+          {currentClasses.map((classItem) => {
+            const classId = classItem.id || classItem._id;
+            return (
+              <Col key={classId}>
+                <Card 
+                  className="h-100 shadow-sm transition-all hover-shadow"
+                  onClick={() => onClassClick(classId)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <CardHeader className="d-flex justify-content-between align-items-center">
+                    <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
+                    {!isStudent && (
+                      <Dropdown onClick={(e) => e.stopPropagation()}>
+                        <Dropdown.Toggle 
+                          variant="link" 
+                          id={`dropdown-${classId}`}
+                          className="text-dark p-0 shadow-none"
                         >
-                          {archiveLoading ? 'Archiving...' : 'Archive'}
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
+                          {/* Dropdown icon is rendered by default */}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => handleEdit(classItem)}>
+                            Edit
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={() => copyClassLink(classId)}>
+                            Copy Invitation Link
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item 
+                            className="text-danger" 
+                            onClick={() => handleArchive(classItem)}
+                            disabled={archiveLoading}
+                          >
+                            {archiveLoading ? 'Archiving...' : 'Archive'}
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    )}
+                  </CardHeader>
+                  <CardBody>
+                    <CardTitle className="fs-4">{classItem.name}</CardTitle>
+                    <p className="text-muted">{classItem.description || 'No description provided'}</p>
+                    {/* Add Google Drive icon/link if teacherFolder exists */}
+                    {classItem.teacherFolder?.alternateLink && (
+                      <a 
+                        href={classItem.teacherFolder.alternateLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="d-flex align-items-center gap-2 text-decoration-none mt-2"
+                      >
+                       <IconifyIcon icon="mdi:folder" width={30} />
+                        {/* <span>Google Drive</span> */}
+                      </a>
+                    )}
+                  </CardBody>
+                  {(classItem.section || classItem.room) && (
+                    <CardFooter className="d-flex justify-content-between text-muted small">
+                      {classItem.section && <span>Section: {classItem.section}</span>}
+                      {classItem.room && <span>
+                        Room: {classItem.room}</span>}
+                    </CardFooter>
                   )}
-                </CardHeader>
-                <CardBody>
-                  <CardTitle className="fs-4">{classItem.name}</CardTitle>
-                  <p className="text-muted">{classItem.description || 'No description provided'}</p>
-                  {/* Add Google Drive icon/link if teacherFolder exists */}
-                  {classItem.teacherFolder?.alternateLink && (
-                    <a 
-                      href={classItem.teacherFolder.alternateLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="d-flex align-items-center gap-2 text-decoration-none mt-2"
-                    >
-                     <IconifyIcon icon="mdi:folder" width={30} />
-                      {/* <span>Google Drive</span> */}
-                    </a>
-                  )}
-                </CardBody>
-                {(classItem.section || classItem.room) && (
-                  <CardFooter className="d-flex justify-content-between text-muted small">
-                    {classItem.section && <span>Section: {classItem.section}</span>}
-                    {classItem.room && <span>
-                      Room: {classItem.room}</span>}
-                  </CardFooter>
-                )}
-              </Card>
-            </Col>
-          );
-        })}
-      </Row>
+                </Card>
+              </Col>
+            );
+          })}
+        </Row>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

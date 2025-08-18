@@ -286,55 +286,66 @@ const ClassCards = () => {
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
 
-      <Row xs={1} md={2} lg={3} className="g-4 mb-5">
-        {classes
-        .filter(classItem => classItem.courseState == "ARCHIVED")
-        .map((classItem) => (
-          <Col key={classItem.id || classItem._id}>
-            <Card className="h-100 shadow-sm">
-              <CardHeader className="d-flex justify-content-between align-items-center">
-                <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
-                <Dropdown>
-                  <Dropdown.Toggle 
-                    variant="link" 
-                    id={`dropdown-${classItem.id || classItem._id}`}
-                    className="text-dark p-0 shadow-none"
-                  >
-                    <i className="bi bi-three-dots-vertical"></i>
-                  </Dropdown.Toggle>
+      {classes.filter(classItem => classItem.courseState == "ARCHIVED").length === 0 ? (
+        <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+          <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="#0d6efd" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10" stroke="#0d6efd" strokeWidth="1.5" fill="#e9f5ff" />
+            <path d="M8 12h8M8 16h5" stroke="#0d6efd" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <h4 className="mt-3 text-primary">No class found</h4>
+          <p className="text-muted">You don't have any archived classes yet.</p>
+        </div>
+      ) : (
+        <Row xs={1} md={2} lg={3} className="g-4 mb-5">
+          {classes
+          .filter(classItem => classItem.courseState == "ARCHIVED")
+          .map((classItem) => (
+            <Col key={classItem.id || classItem._id}>
+              <Card className="h-100 shadow-sm">
+                <CardHeader className="d-flex justify-content-between align-items-center">
+                  <span className="fw-bold text-primary">{classItem.descriptionHeading || 'Class'}</span>
+                  <Dropdown>
+                    <Dropdown.Toggle 
+                      variant="link" 
+                      id={`dropdown-${classItem.id || classItem._id}`}
+                      className="text-dark p-0 shadow-none"
+                    >
+                      <i className="bi bi-three-dots-vertical"></i>
+                    </Dropdown.Toggle>
 
-                  <Dropdown.Menu>
-                    <Dropdown.Item 
-                      className="text-danger" 
-                      onClick={() => handleDelete(classItem)}
-                      disabled={archiveLoading}
-                    >
-                      {archiveLoading ? 'Deleting...' : 'Delete'}
-                    </Dropdown.Item>
-                    <Dropdown.Item 
-                      className="text-success" 
-                      onClick={() => handleRestore(classItem)}
-                      disabled={archiveLoading}
-                    >
-                      {archiveLoading ? 'Restoring...' : 'Restore'}
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </CardHeader>
-              <CardBody>
-                <CardTitle className="fs-4">{classItem.name}</CardTitle>
-                <p className="text-muted">{classItem.description || 'No description provided'}</p>
-              </CardBody>
-              {(classItem.section || classItem.room) && (
-                <CardFooter className="d-flex justify-content-between text-muted small">
-                  {classItem.section && <span>Section: {classItem.section}</span>}
-                  {classItem.room && <span>Room: {classItem.room}</span>}
-                </CardFooter>
-              )}
-            </Card>
-          </Col>
-        ))}
-      </Row>
+                    <Dropdown.Menu>
+                      <Dropdown.Item 
+                        className="text-danger" 
+                        onClick={() => handleDelete(classItem)}
+                        disabled={archiveLoading}
+                      >
+                        {archiveLoading ? 'Deleting...' : 'Delete'}
+                      </Dropdown.Item>
+                      <Dropdown.Item 
+                        className="text-success" 
+                        onClick={() => handleRestore(classItem)}
+                        disabled={archiveLoading}
+                      >
+                        {archiveLoading ? 'Restoring...' : 'Restore'}
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </CardHeader>
+                <CardBody>
+                  <CardTitle className="fs-4">{classItem.name}</CardTitle>
+                  <p className="text-muted">{classItem.description || 'No description provided'}</p>
+                </CardBody>
+                {(classItem.section || classItem.room) && (
+                  <CardFooter className="d-flex justify-content-between text-muted small">
+                    {classItem.section && <span>Section: {classItem.section}</span>}
+                    {classItem.room && <span>Room: {classItem.room}</span>}
+                  </CardFooter>
+                )}
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      )}
 
       {/* Floating Action Button */}
       {/* <Button 
