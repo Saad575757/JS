@@ -40,6 +40,35 @@ import {
 } from 'react-bootstrap';
 
 const ClassCards = () => {
+  const handleDelete = async (classItem) => {
+    if (!window.confirm('Are you sure you want to permanently delete this class? This action cannot be undone.')) return;
+    setArchiveLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const classId = classItem.id || classItem._id;
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete classroom');
+      }
+      setClasses(prev => prev.filter(cls => (cls.id !== classId && cls._id !== classId)));
+      setSuccess('Classroom deleted successfully!');
+    } catch (err) {
+      setError(err.message || 'Failed to delete classroom');
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
   const [showForm, setShowForm] = useState(false);
   const [classes, setClasses] = useState([]);
   const [error, setError] = useState(null);
@@ -222,6 +251,36 @@ const ClassCards = () => {
     }
   };
 
+  const handleRestore = async (classItem) => {
+    if (!window.confirm('Are you sure you want to restore this class?')) return;
+    setArchiveLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const classId = classItem.id || classItem._id;
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/restore`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to restore classroom');
+      }
+      setClasses(prev => prev.filter(cls => (cls.id !== classId && cls._id !== classId)));
+      setSuccess('Classroom restored successfully!');
+    } catch (err) {
+      setError(err.message || 'Failed to restore classroom');
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 position-relative" style={{ minHeight: '100vh' }}>
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
@@ -245,22 +304,19 @@ const ClassCards = () => {
                   </Dropdown.Toggle>
 
                   <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => handleEdit(classItem)}>
-                      Edit
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => handleCopy(classItem)}>
-                      Copy
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => handleMove(classItem)}>
-                      Move
-                    </Dropdown.Item>
-                    <Dropdown.Divider />
                     <Dropdown.Item 
                       className="text-danger" 
-                      onClick={() => handleArchive(classItem)}
+                      onClick={() => handleDelete(classItem)}
                       disabled={archiveLoading}
                     >
-                      {archiveLoading ? 'Archiving...' : 'Archive'}
+                      {archiveLoading ? 'Deleting...' : 'Delete'}
+                    </Dropdown.Item>
+                    <Dropdown.Item 
+                      className="text-success" 
+                      onClick={() => handleRestore(classItem)}
+                      disabled={archiveLoading}
+                    >
+                      {archiveLoading ? 'Restoring...' : 'Restore'}
                     </Dropdown.Item>
                   </Dropdown.Menu>
                 </Dropdown>
