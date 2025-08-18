@@ -178,13 +178,33 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
 }
 
 export default function ChatInput() {
-  // Silent one-time refresh when user reaches dashboard (only once per session)
+  // Extract token, role, name, email, picture from URL and save to localStorage if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // If not refreshed yet, set flag and reload
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      const token = params.get('token');
+      const role = params.get('role');
+      const name = params.get('name');
+      const email = params.get('email');
+      const picture = params.get('picture');
+      if (token) localStorage.setItem('token', token);
+      if (role) localStorage.setItem('role', role);
+      if (name) localStorage.setItem('name', name);
+      if (email) localStorage.setItem('email', email);
+      if (picture) localStorage.setItem('picture', picture);
+      // Console log the values for debugging
+      console.log('Dashboard extracted values:', {
+        token: token || localStorage.getItem('token'),
+        role: role || localStorage.getItem('role'),
+        name: name || localStorage.getItem('name'),
+        email: email || localStorage.getItem('email'),
+        picture: picture || localStorage.getItem('picture'),
+      });
+      // Now refresh once after extracting data
       if (!sessionStorage.getItem('dashboardRefreshed')) {
         sessionStorage.setItem('dashboardRefreshed', 'true');
-        window.location.replace(window.location.href);
+        window.location.reload();
       }
     }
   }, []);
