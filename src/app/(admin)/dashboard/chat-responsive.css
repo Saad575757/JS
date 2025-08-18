@@ -5,7 +5,7 @@
   box-sizing: border-box;
 }
 .chat-responsive-body {
-  height: 70vh;
+  height: 100vh;
   min-height: 400px;
   max-height: 90vh;
   overflow: hidden;
@@ -45,7 +45,7 @@
 }
 @media (max-width: 480px) {
   .chat-responsive-body {
-    height: 50vh;
+    height: 90vh;
     min-height: 200px;
   }
   .chat-message-bubble {
