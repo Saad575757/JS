@@ -178,11 +178,11 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
 }
 
 export default function ChatInput() {
-  // Silent one-time refresh when user reaches dashboard
+  // Silent one-time refresh when user reaches dashboard (only once per session)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (!window.__dashboardRefreshed) {
-        window.__dashboardRefreshed = true;
+      if (!sessionStorage.getItem('dashboardRefreshed')) {
+        sessionStorage.setItem('dashboardRefreshed', 'true');
         window.location.reload();
       }
     }
