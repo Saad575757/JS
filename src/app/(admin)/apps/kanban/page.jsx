@@ -1,3 +1,32 @@
+  const handleRestore = async (classItem) => {
+    if (!window.confirm('Are you sure you want to restore this class?')) return;
+    setArchiveLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const classId = classItem.id || classItem._id;
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/restore`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to restore classroom');
+      }
+      setClasses(prev => prev.filter(cls => (cls.id !== classId && cls._id !== classId)));
+      setSuccess('Classroom restored successfully!');
+    } catch (err) {
+      setError(err.message || 'Failed to restore classroom');
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
 // import { Col, Row } from 'react-bootstrap';
 // import Board from './Components/Board';
 // import { KanbanProvider } from '@/context/useKanbanContext';
@@ -262,6 +291,13 @@ const ClassCards = () => {
                         disabled={archiveLoading}
                       >
                         {archiveLoading ? 'Archiving...' : 'Archive'}
+                      </Dropdown.Item>
+                      <Dropdown.Item 
+                        className="text-success" 
+                        onClick={() => handleRestore(classItem)}
+                        disabled={archiveLoading}
+                      >
+                        {archiveLoading ? 'Restoring...' : 'Restore'}
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
