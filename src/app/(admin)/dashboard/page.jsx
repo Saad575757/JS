@@ -201,33 +201,6 @@ export default function ChatInput() {
         email: email || localStorage.getItem('email'),
         picture: picture || localStorage.getItem('picture'),
       });
-      // Always refresh after extracting data
-      window.location.reload();
-    }
-  }, []);
-  // Extract token, role, name, email, picture from URL and save to localStorage if present
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      const params = url.searchParams;
-      const token = params.get('token');
-      const role = params.get('role');
-      const name = params.get('name');
-      const email = params.get('email');
-      const picture = params.get('picture');
-      if (token) localStorage.setItem('token', token);
-      if (role) localStorage.setItem('role', role);
-      if (name) localStorage.setItem('name', name);
-      if (email) localStorage.setItem('email', email);
-      if (picture) localStorage.setItem('picture', picture);
-      // Console log the values for debugging
-      console.log('Dashboard extracted values:', {
-        token: token || localStorage.getItem('token'),
-        role: role || localStorage.getItem('role'),
-        name: name || localStorage.getItem('name'),
-        email: email || localStorage.getItem('email'),
-        picture: picture || localStorage.getItem('picture'),
-      });
     }
   }, []);
 
@@ -1179,18 +1152,6 @@ if (response.assignment && typeof response.assignment === 'object') {
   };
 
   // Voice Mode: Start listening with SpeechRecognition
-  // Helper: Clean text for TTS (remove **, icon name, /, (, ))
-  const cleanVoiceText = (text) => {
-    if (!text) return '';
-    // Remove asterisks, slashes, parentheses
-    let cleaned = text.replace(/[*/()]/g, ' ');
-    // Remove the word 'icon' (case-insensitive)
-    cleaned = cleaned.replace(/\bicon\b/gi, '');
-    // Remove extra spaces
-    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
-    return cleaned;
-  };
-
   const startVoiceListening = () => {
     setVoiceModeError(null);
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
@@ -1239,14 +1200,12 @@ if (response.assignment && typeof response.assignment === 'object') {
         } else {
           text = 'Sorry, I could not understand the response.';
         }
-        // Clean text for TTS
-        const voiceText = cleanVoiceText(text);
         // Add bot response to chat history
         setMessages(prev => [...prev, { sender: 'bot', text, time: new Date() }]);
         setVoiceModeStatus('playing');
         // Ensure overlay stays open until TTS finishes
-        if (synthRef.current && voice && voiceText) {
-          const utterance = new window.SpeechSynthesisUtterance(voiceText);
+        if (synthRef.current && voice && text) {
+          const utterance = new window.SpeechSynthesisUtterance(text);
           utterance.voice = voice;
           utterance.rate = 1.0;
           utterance.pitch = 1.0;
@@ -1441,7 +1400,7 @@ if (response.assignment && typeof response.assignment === 'object') {
                 variant="outline-success"
                 onClick={openVoiceMode}
                 disabled={isLoading || showVoiceMode}
-                title="Voice Mode"
+                title="Voice Mode (ChatGPT style)"
               >
                 <IconifyIcon icon="mdi:waveform" width={22} />
               </Button>
