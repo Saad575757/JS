@@ -1,38 +1,34 @@
-
-import { Col, Row, Container } from 'react-bootstrap';
-import Stats from './components/Stats';
-import MerchantList from './components/MerchantList';
-import { merchantListData } from './data';
-import RevenueChart from './components/RevenueChart';
-import OrderStatus from './components/OrderStatus';
-import RecentOrders from './components/RecentOrders';
-import PageTitle from '@/components/PageTitle';
-
-const Dashboard = () => {
-  return (
-    <Container fluid className="px-2 px-md-4 py-3">
-      <PageTitle title="Dashboard" />
-      <Stats />
-      <Row className="gy-4">
-        <Col xs={12} lg={4} className="order-2 order-lg-1 mb-3 mb-lg-0">
-          <MerchantList merchants={merchantListData} />
-        </Col>
-        <Col xs={12} lg={8} className="order-1 order-lg-2">
-          <RevenueChart />
-        </Col>
-      </Row>
-      <Row className="gy-4 mt-2">
-        <Col xs={12} xxl={4} className="order-1 order-xxl-2 mb-3 mb-xxl-0">
-          <OrderStatus />
-        </Col>
-        <Col xs={12} xxl={8} className="order-2 order-xxl-1">
-          <RecentOrders />
-        </Col>
-      </Row>
-    </Container>
-  );
-};
-export default Dashboard;
+// import { Col, Row } from 'react-bootstrap';
+// import Stats from './components/Stats';
+// import MerchantList from './components/MerchantList';
+// import { merchantListData } from './data';
+// import RevenueChart from './components/RevenueChart';
+// import OrderStatus from './components/OrderStatus';
+// import RecentOrders from './components/RecentOrders';
+// import PageTitle from '@/components/PageTitle';
+// const Dashboard = () => {
+//   return <>
+//       <PageTitle title="Dashboard" />
+//       <Stats />
+//       <Row>
+//         <Col lg={4} className="order-2 order-lg-1">
+//           <MerchantList merchants={merchantListData} />
+//         </Col>
+//         <Col lg={8} className="order-1 order-lg-2">
+//           <RevenueChart />
+//         </Col>
+//       </Row>
+//       <Row>
+//         <Col xxl={4} className="order-1 order-lg-2">
+//           <OrderStatus />
+//         </Col>
+//         <Col xxl={8} className="order-2 order-lg-1">
+//           <RecentOrders />
+//         </Col>
+//       </Row>
+//     </>;
+// };
+// export default Dashboard;
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -181,7 +177,7 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
   );
 }
 
-function ChatInput() {
+export default function ChatInput() {
   // Extract token, role, name, email, picture from URL and save to localStorage if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
