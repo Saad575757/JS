@@ -178,6 +178,15 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
 }
 
 export default function ChatInput() {
+  // Silent one-time refresh when user reaches dashboard
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (!window.__dashboardRefreshed) {
+        window.__dashboardRefreshed = true;
+        window.location.reload();
+      }
+    }
+  }, []);
   // Extract token, role, name, email, picture from URL and save to localStorage if present
   useEffect(() => {
     if (typeof window !== 'undefined') {
