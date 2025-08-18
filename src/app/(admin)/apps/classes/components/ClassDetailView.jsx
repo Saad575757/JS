@@ -525,53 +525,31 @@ export default function ClassDetailView({ classId }) {
                 <Row>
                   {/* Main Content Column */}
                   <Col lg={8}>
-                    {/* Upcoming Section */}
-                    <Card className="mb-4 border-0 shadow-sm">
-                      <CardBody>
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                          <h5>Upcoming</h5>
-                          <Button 
-                            variant={meetLink ? 'success' : 'outline-primary'} 
-                            size="sm"
-                            onClick={generateMeetLink}
-                          >
-                            {meetLink ? `Meet Link: ${meetLink}` : 'Generate Meet Link'}
-                          </Button>
-                        </div>
-                        {meetLink ? (
-                          <div className="mb-3">
-                            <p>Next class meeting:</p>
-                            <a href={meetLink} target="_blank" rel="noopener noreferrer">
-                              {meetLink}
-                            </a>
-                          </div>
-                        ) : (
-                          <p className="text-muted">No work due soon</p>
-                        )}
-                        <Button variant="link" className="p-0 text-decoration-none">View all</Button>
-                      </CardBody>
-                    </Card>
                     
                     {/* Announcements List */}
-                    {announcements.map(announcement => (
-                      <Card key={announcement.id} className="mb-4 border-0 shadow-sm">
-                        <CardBody>
-                          <div className="d-flex mb-3">
-                            <div className="me-3">
-                              <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
-                                {announcement.creatorUserId ? announcement.creatorUserId.slice(-2).toUpperCase() : 'AN'}
+
+                      {announcements.length === 0 ? (
+                        <div className="text-center text-muted my-4">No announcement found</div>
+                      ) : (
+                        announcements.map(announcement => (
+                          <Card key={announcement.id} className="mb-4 border-0 shadow-sm">
+                            <CardBody>
+                              <div className="d-flex mb-3">
+                                <div className="me-3">
+                                  <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
+                                    {announcement.creatorUserId ? announcement.creatorUserId.slice(-2).toUpperCase() : 'AN'}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="fw-bold">{announcement.creatorUserId || 'Unknown'}</div>
+                                  <div className="text-muted small">{announcement.creationTime ? new Date(announcement.creationTime).toLocaleString() : ''}</div>
+                                </div>
                               </div>
-                            </div>
-                            <div>
-                              <div className="fw-bold">{announcement.creatorUserId || 'Unknown'}</div>
-                              <div className="text-muted small">{announcement.creationTime ? new Date(announcement.creationTime).toLocaleString() : ''}</div>
-                            </div>
-                          </div>
-                          <p>{announcement.text}</p>
-                          {/* Removed 'View in Google Classroom' button as requested */}
-                        </CardBody>
-                      </Card>
-                    ))}
+                              <p>{announcement.text}</p>
+                            </CardBody>
+                          </Card>
+                        ))
+                      )}
 
                   </Col>
                   
@@ -629,36 +607,42 @@ export default function ClassDetailView({ classId }) {
                           <th>Materials</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        {assignments.map(assignment => (
-                          <tr key={assignment.id} style={{cursor: 'pointer'}}>
-                            <td>
-                              <div className="fw-bold">{assignment.title}</div>
-                              <small className="text-muted">{assignment.description ? assignment.description.substring(0, 50) + (assignment.description.length > 50 ? '...' : '') : ''}</small>
-                            </td>
-                            <td>
-                              {assignment.dueDateTime
-                                ? assignment.dueDateTime.toLocaleString()
-                                : assignment.dueDate && assignment.dueDate.year
-                                  ? `${assignment.dueDate.year}-${String(assignment.dueDate.month).padStart(2, '0')}-${String(assignment.dueDate.day).padStart(2, '0')}`
-                                  : '—'}
-                            </td>
-                            <td>{assignment.maxPoints !== undefined ? assignment.maxPoints : '—'}</td>
-                            <td>
-                              <Badge bg={assignment.state === 'PUBLISHED' ? 'success' : 'secondary'}>
-                                {assignment.state}
-                              </Badge>
-                            </td>
-                            <td>
-                              {assignment.materials && assignment.materials.length > 0 && assignment.materials[0].driveFile && assignment.materials[0].driveFile.driveFile ? (
-                                <a href={assignment.materials[0].driveFile.driveFile.alternateLink} target="_blank" rel="noopener noreferrer">
-                                  {assignment.materials[0].driveFile.driveFile.title}
-                                </a>
-                              ) : '—'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
+                        <tbody>
+                          {assignments.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="text-center text-muted">No classwork found</td>
+                            </tr>
+                          ) : (
+                            assignments.map(assignment => (
+                              <tr key={assignment.id} style={{cursor: 'pointer'}}>
+                                <td>
+                                  <div className="fw-bold">{assignment.title}</div>
+                                  <small className="text-muted">{assignment.description ? assignment.description.substring(0, 50) + (assignment.description.length > 50 ? '...' : '') : ''}</small>
+                                </td>
+                                <td>
+                                  {assignment.dueDateTime
+                                    ? assignment.dueDateTime.toLocaleString()
+                                    : assignment.dueDate && assignment.dueDate.year
+                                      ? `${assignment.dueDate.year}-${String(assignment.dueDate.month).padStart(2, '0')}-${String(assignment.dueDate.day).padStart(2, '0')}`
+                                      : '—'}
+                                </td>
+                                <td>{assignment.maxPoints !== undefined ? assignment.maxPoints : '—'}</td>
+                                <td>
+                                  <Badge bg={assignment.state === 'PUBLISHED' ? 'success' : 'secondary'}>
+                                    {assignment.state}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  {assignment.materials && assignment.materials.length > 0 && assignment.materials[0].driveFile && assignment.materials[0].driveFile.driveFile ? (
+                                    <a href={assignment.materials[0].driveFile.driveFile.alternateLink} target="_blank" rel="noopener noreferrer">
+                                      {assignment.materials[0].driveFile.driveFile.title}
+                                    </a>
+                                  ) : '—'}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
                     </Table>
                   </CardBody>
                 </Card>
