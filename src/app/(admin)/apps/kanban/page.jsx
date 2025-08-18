@@ -293,7 +293,7 @@ const ClassCards = () => {
             <path d="M8 12h8M8 16h5" stroke="#0d6efd" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <h4 className="mt-3 text-primary">No class found</h4>
-          <p className="text-muted">You don't have any archived classes yet.</p>
+          <p className="text-muted">You don&apos;t have any archived classes yet.</p>
         </div>
       ) : (
         <Row xs={1} md={2} lg={3} className="g-4 mb-5">
