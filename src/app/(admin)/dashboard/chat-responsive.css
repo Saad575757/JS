@@ -1,0 +1,55 @@
+/* Responsive styles for chat UI */
+.chat-responsive-card {
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.chat-responsive-body {
+  height: 70vh;
+  min-height: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+}
+.chat-messages-container {
+  max-height: 100%;
+  overflow-y: auto;
+}
+.chat-message-bubble {
+  max-width: 90vw;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+.chat-message-user {
+  align-self: flex-end;
+}
+.chat-message-bot {
+  align-self: flex-start;
+}
+.chat-message-nextsteps {
+  align-self: flex-start;
+}
+@media (max-width: 768px) {
+  .chat-responsive-body {
+    height: 60vh;
+    min-height: 300px;
+    padding: 0;
+  }
+  .chat-message-bubble {
+    max-width: 98vw;
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+  .chat-messages-container {
+    padding: 0.5rem;
+  }
+}
+@media (max-width: 480px) {
+  .chat-responsive-body {
+    height: 50vh;
+    min-height: 200px;
+  }
+  .chat-message-bubble {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+}

@@ -49,6 +49,7 @@ import {
   ProgressBar
 } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import './chat-responsive.css';
 
 // Prompt Suggestions Component (defined in the same file)
 function PromptSuggestions({ onPromptSelect, isLoading }) {
@@ -1265,8 +1266,8 @@ if (response.assignment && typeof response.assignment === 'object') {
   };
 
   return (
-    <Card className="border-0 bg-body" style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      <CardBody className="p-0 d-flex flex-column" style={{ height: '700px' }}>
+    <Card className="border-0 bg-body chat-responsive-card">
+      <CardBody className="p-0 d-flex flex-column chat-responsive-body">
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
           <div>
             <h5 className="mb-0">AI Classroom Chat</h5>
@@ -1311,24 +1312,23 @@ if (response.assignment && typeof response.assignment === 'object') {
           )}
         </div>
         
-        <div className="flex-grow-1 p-3 overflow-auto">
+        <div className="flex-grow-1 p-3 overflow-auto chat-messages-container">
           {messages.map((msg, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`mb-3 d-flex ${msg.sender === 'user' ? 'justify-content-end' : 'justify-content-start'}`}
             >
-              <div 
-                className={`rounded-3 p-3 ${
-                  msg.sender === 'user' 
-                    ? 'bg-primary text-white' 
-                    : msg.type === 'nextSteps' 
-                      ? 'bg-info bg-opacity-10 border-start border-info border-3' 
-                      : 'bg border'
+              <div
+                className={`rounded-3 p-3 chat-message-bubble ${
+                  msg.sender === 'user'
+                    ? 'bg-primary text-white chat-message-user'
+                    : msg.type === 'nextSteps'
+                      ? 'bg-info bg-opacity-10 border-start border-info border-3 chat-message-nextsteps'
+                      : 'bg border chat-message-bot'
                 }`}
-                style={{ maxWidth: '80%' }}
               >
                 {msg.sender === 'bot' ? renderBotResponse(msg) : <div>{msg.text}</div>}
-                <div 
+                <div
                   className={`small mt-1 ${msg.sender === 'user' ? 'text-white-50' : 'text-muted'}`}
                   style={{ textAlign: 'right' }}
                 >
@@ -1337,7 +1337,6 @@ if (response.assignment && typeof response.assignment === 'object') {
               </div>
             </div>
           ))}
-          
           {isLoading && (
             <div className="mb-3 d-flex justify-content-start">
               <div className="border rounded-3 p-3">
