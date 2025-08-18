@@ -201,9 +201,10 @@ export default function ChatInput() {
         email: email || localStorage.getItem('email'),
         picture: picture || localStorage.getItem('picture'),
       });
-      // Now refresh once after extracting data
-      if (!sessionStorage.getItem('dashboardRefreshed')) {
-        sessionStorage.setItem('dashboardRefreshed', 'true');
+      // Refresh twice after extracting data
+      let refreshCount = parseInt(sessionStorage.getItem('dashboardRefreshCount') || '0', 10);
+      if (refreshCount < 2) {
+        sessionStorage.setItem('dashboardRefreshCount', String(refreshCount + 1));
         window.location.reload();
       }
     }
