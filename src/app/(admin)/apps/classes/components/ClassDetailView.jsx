@@ -754,7 +754,7 @@ export default function ClassDetailView({ classId }) {
                           ) : (
                             grades.map((grade, idx) => (
                               <tr key={idx}>
-                                <td>{grade.studentId}</td>
+                                <td>{grade.studentName}</td>
                                 <td>{grade.assignmentTitle}</td>
                                 <td>{grade.grade !== undefined ? grade.grade : '—'}</td>
                                 <td>{grade.maxPoints !== undefined ? grade.maxPoints : '—'}</td>
