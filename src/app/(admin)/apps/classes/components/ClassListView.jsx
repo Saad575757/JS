@@ -15,13 +15,16 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
   useEffect(() => {
     const userRole = localStorage.getItem('role');
     setIsStudent(userRole === 'student');
-    // Simulate loading for demo, only on initial mount
     setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
   }, []);
+
+  // When classes prop changes, set loading to false after confirming data
+  useEffect(() => {
+    // If classes is undefined/null, keep loading
+    if (Array.isArray(classes)) {
+      setIsLoading(false);
+    }
+  }, [classes]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
