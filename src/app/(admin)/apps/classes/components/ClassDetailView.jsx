@@ -665,24 +665,35 @@ export default function ClassDetailView({ classId }) {
               
               {/* People Tab */}
               <Tab.Pane eventKey="people" className="p-4">
-                <div className="mb-4">
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h4>Teachers</h4>
-                  </div>
-                  <ListGroup>
-                    <ListGroupItem className="d-flex align-items-center">
-                      <div className="me-3">
-                        <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '40px', height: '40px'}}>
-                          SK
-                        </div>
-                      </div>
-                      <div>
-                        <div className="fw-bold">Saad khan</div>
-                        <div className="text-muted small">Owner</div>
-                      </div>
-                    </ListGroupItem>
-                  </ListGroup>
-                </div>
+              {localStorage.getItem('role') === 'teacher' && (
+  <div className="mb-4">
+    <div className="d-flex justify-content-between align-items-center mb-3">
+      <h4>Teachers</h4>
+    </div>
+    <ListGroup>
+      <ListGroupItem className="d-flex align-items-center">
+        <div className="me-3">
+          <div
+            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: '40px', height: '40px' }}
+          >
+            {localStorage.getItem('name')
+              ? localStorage.getItem('name')
+                  .split(' ')
+                  .map(n => n[0])
+                  .join('')
+              : 'NA'}
+          </div>
+        </div>
+        <div>
+          <div className="fw-bold">{localStorage.getItem('name')}</div>
+          <div className="text-muted small">Owner</div>
+        </div>
+      </ListGroupItem>
+    </ListGroup>
+  </div>
+)}
+
 
                 <div>
                   <div className="d-flex justify-content-between align-items-center mb-3">
