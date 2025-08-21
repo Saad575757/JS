@@ -5,14 +5,19 @@ import {
   Alert, Dropdown, Badge, Pagination 
 } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
+import Spinner from '@/components/Spinner';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
 export default function ClassListView({ classes, refreshClasses, onClassClick }) {
   const [isStudent, setIsStudent] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const userRole = localStorage.getItem('role');
     setIsStudent(userRole === 'student');
+    // Simulate loading for demo, replace with actual data fetch logic if needed
+    const timer = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(timer);
   }, []);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -207,7 +212,12 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess(null)} dismissible>{success}</Alert>}
 
-      {currentClasses.length === 0 ? (
+      {isLoading ? (
+        <div className="d-flex flex-column align-items-center justify-content-center text-center" style={{ minHeight: '60vh' }}>
+          <Spinner size="xl" color="primary" type="bordered" className="mb-3" />
+          <h5 className="text-primary">Loading classes...</h5>
+        </div>
+      ) : currentClasses.length === 0 ? (
         <div className="d-flex flex-column align-items-center justify-content-center text-center" style={{ minHeight: '60vh' }}>
           <svg width="80" height="80" fill="none" viewBox="0 0 24 24" stroke="#0d6efd" strokeWidth="1.5">
             <circle cx="12" cy="12" r="10" stroke="#0d6efd" strokeWidth="1.5" fill="#e9f5ff" />
