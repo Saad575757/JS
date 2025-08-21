@@ -571,10 +571,14 @@ export default function ClassDetailView({ classId }) {
                           <div className="text-muted small">Class code</div>
                           <div className="fw-bold">{classData.enrollmentCode || 'rxbevp33'}</div>
                         </div>
-                        <div className="mb-3">
-                          <div className="text-muted small">Teacher</div>
-                          <div className="fw-bold">Saad khan</div>
-                        </div>
+                        {localStorage.getItem('role') === 'teacher' && (
+  <div className="mb-3">
+    <div className="text-muted small">Teacher</div>
+    <div className="fw-bold">{localStorage.getItem('name')}</div>
+  </div>
+)}
+
+
                         <div className="mb-3">
                           <div className="text-muted small">Section</div>
                           <div className="fw-bold">{classData.section || 'N/A'}</div>
