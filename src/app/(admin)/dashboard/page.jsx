@@ -399,9 +399,14 @@ export default function ChatInput() {
       console.log('[AI DEBUG] botResponse to be added to messages:', botResponse);
       setMessages(prev => [...prev, botResponse]);
       
-      if (!conversationId && data.response?.conversationId) {
-        setConversationId(data.response.conversationId);
-      }
+      // ⬇️ Place the conversationId logs here
+if (!conversationId && data.response?.conversationId) {
+  setConversationId(data.response.conversationId);
+  console.log('[AI DEBUG] New conversationId set:', data.response.conversationId);
+} else {
+  console.log('[AI DEBUG] Existing conversationId:', conversationId);
+}
+// ⬆️ end
       
       if (data.response?.message) {
         speak(data.response.message);
