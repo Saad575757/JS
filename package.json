@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 5000",
-  "build": "next build",
-  "start": "next start -p 5000",
+    "build": "next build",
+    "start": "next start -p 5000",
     "lint": "next lint",
     "format": "prettier --write 'src/**/*.{ts,tsx,js,jsx}'"
   },
@@ -56,6 +56,7 @@
     "sass": "^1.77.8",
     "simplebar-core": "^1.2.6",
     "simplebar-react": "^3.2.6",
+    "uuid": "^11.1.0",
     "yup": "^1.4.0"
   },
   "devDependencies": {

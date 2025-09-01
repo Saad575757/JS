@@ -50,7 +50,7 @@ import {
 } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import './chat-responsive.css';
-
+import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
 // Prompt Suggestions Component (defined in the same file)
 function PromptSuggestions({ onPromptSelect, isLoading }) {
   const promptCategories = [
@@ -358,88 +358,95 @@ export default function ChatInput() {
     }
   };
 
-  // Message handling
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    
-    setIsLoading(true);
-    setError(null);
-    
-    const userMessage = { sender: 'user', text: message, time: new Date() };
-    setMessages(prev => [...prev, userMessage]);
-    const currentMessage = message;
-    setMessage('');
-    
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: currentMessage,
-          conversationId: conversationId || undefined
-        })
-      });
+  // Load conversationId from localStorage on mount
+useEffect(() => {
+  const storedId = localStorage.getItem('conversationId');
+  if (storedId) {
+    setConversationId(storedId);
+  }
+}, []);
 
-      if (!res.ok) throw new Error(res.statusText || 'Request failed');
-      
-      const data = await res.json();
-      // Debug logs for backend response and bot message structure
-      console.log('[AI DEBUG] API response data:', data);
-      const botResponse = {
-        sender: 'bot',
-        data: data,
-        time: new Date(),
-        type: 'structured'
-      };
-      console.log('[AI DEBUG] botResponse to be added to messages:', botResponse);
-      setMessages(prev => [...prev, botResponse]);
-      
-      // ⬇️ Place the conversationId logs here
-if (!conversationId && data.response?.conversationId) {
-  setConversationId(data.response.conversationId);
-  console.log('[AI DEBUG] New conversationId set:', data.response.conversationId);
-} else {
-  console.log('[AI DEBUG] Existing conversationId:', data.response.conversationId);
-}
-// ⬆️ end
-      
-      if (data.response?.message) {
-        speak(data.response.message);
-      } else if (data.response) {
-        speak("Here's the information you requested.");
-      }
-      
-      if (data.response?.nextSteps) {
-        setTimeout(() => {
-          const nextStepsMessage = {
-            sender: 'bot',
-            text: data.response.nextSteps,
-            time: new Date(),
-            type: 'nextSteps'
-          };
-          setMessages(prev => [...prev, nextStepsMessage]);
-          speak(data.response.nextSteps);
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setError(error.message || 'Failed to send message');
-      setMessages(prev => [...prev, { 
-        sender: 'bot', 
-        text: "Sorry, I encountered an error. Please try again.", 
-        time: new Date(),
-        type: 'text'
-      }]);
-      speak("Sorry, I encountered an error. Please try again.");
-    } finally {
-      setIsLoading(false);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!message.trim()) return;
+  
+  setIsLoading(true);
+  setError(null);
+  
+  const userMessage = { sender: 'user', text: message, time: new Date() };
+  setMessages(prev => [...prev, userMessage]);
+  const currentMessage = message;
+  setMessage('');
+  
+  try {
+    const token = localStorage.getItem('token');
+
+    // ✅ Generate or reuse conversationId
+    let currentConversationId = conversationId;
+    if (!currentConversationId) {
+      currentConversationId = uuidv4(); // generate random id
+      setConversationId(currentConversationId);
+      localStorage.setItem('conversationId', currentConversationId);
+      console.log('[AI DEBUG] Generated new conversationId:', currentConversationId);
     }
-  };
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
+      method: 'POST',
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: currentMessage,
+        conversationId: currentConversationId
+      })
+    });
+
+    if (!res.ok) throw new Error(res.statusText || 'Request failed');
+    
+    const data = await res.json();
+    console.log('[AI DEBUG] API response data:', data);
+
+    const botResponse = {
+      sender: 'bot',
+      data: data,
+      time: new Date(),
+      type: 'structured'
+    };
+    setMessages(prev => [...prev, botResponse]);
+
+    if (data.response?.message) {
+      speak(data.response.message);
+    } else if (data.response) {
+      speak("Here's the information you requested.");
+    }
+
+    if (data.response?.nextSteps) {
+      setTimeout(() => {
+        const nextStepsMessage = {
+          sender: 'bot',
+          text: data.response.nextSteps,
+          time: new Date(),
+          type: 'nextSteps'
+        };
+        setMessages(prev => [...prev, nextStepsMessage]);
+        speak(data.response.nextSteps);
+      }, 1000);
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
+    setError(error.message || 'Failed to send message');
+    setMessages(prev => [...prev, { 
+      sender: 'bot', 
+      text: "Sorry, I encountered an error. Please try again.", 
+      time: new Date(),
+      type: 'text'
+    }]);
+    speak("Sorry, I encountered an error. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handlePromptSelect = (promptText) => {
     setMessage(promptText);
