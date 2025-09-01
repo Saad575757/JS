@@ -404,7 +404,7 @@ if (!conversationId && data.response?.conversationId) {
   setConversationId(data.response.conversationId);
   console.log('[AI DEBUG] New conversationId set:', data.response.conversationId);
 } else {
-  console.log('[AI DEBUG] Existing conversationId:', conversationId);
+  console.log('[AI DEBUG] Existing conversationId:', data.response.conversationId);
 }
 // ⬆️ end
       
