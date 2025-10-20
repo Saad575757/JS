@@ -52,8 +52,28 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import './chat-responsive.css';
 import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
 // Prompt Suggestions Component (defined in the same file)
-function PromptSuggestions({ onPromptSelect, isLoading }) {
-  const promptCategories = [
+function PromptSuggestions({ onPromptSelect, isLoading, role }) {
+  // Role-specific prompt lists
+  const teacherItems = [
+    "Create a new class",
+    "Add a student to my class",
+    "Post an announcement to my Grade SQL class",
+    "Share a classroom join link",
+    "Create an assignment for the Grade SQL Class, due next Monday",
+    "Show submission status for today’s assignment",
+    "Who has not submitted their assignment?"
+  ];
+
+  const studentItems = [
+    "List all my subjects.",
+    "Explain what SQL is.",
+    "List my pending assignments by course.",
+    "How do I submit an assignment?",
+    "I can't upload my homework. Help!",
+    "How many assignments did I complete this month?"
+  ];
+
+  const defaultPromptCategories = [
     {
       title: "Course Management",
       prompts: [
@@ -128,6 +148,29 @@ function PromptSuggestions({ onPromptSelect, isLoading }) {
       ]
     }
   ];
+
+  let promptCategories;
+  if (role === 'teacher') {
+    promptCategories = [
+      {
+        title: 'Teacher Module',
+        prompts: [
+          { level: 'Common', items: teacherItems }
+        ]
+      }
+    ];
+  } else if (role === 'student') {
+    promptCategories = [
+      {
+        title: 'Student Module',
+        prompts: [
+          { level: 'Common', items: studentItems }
+        ]
+      }
+    ];
+  } else {
+    promptCategories = defaultPromptCategories;
+  }
 
   return (
     <div className="mb-3">
@@ -223,6 +266,7 @@ export default function ChatInput() {
   const [voiceModeTranscript, setVoiceModeTranscript] = useState('');
   const [recognitionLang, setRecognitionLang] = useState('en-US'); // New: language for speech recognition
   const [userNames, setUserNames] = useState({}); // userId -> name
+  const [role, setRole] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioPlayerRef = useRef(null);
@@ -290,6 +334,14 @@ export default function ChatInput() {
       }
     };
   }, [isListening, recognitionLang]);
+
+  // Load role from localStorage so PromptSuggestions can use it
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('role');
+      if (stored) setRole(stored);
+    }
+  }, []);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -1493,6 +1545,7 @@ if (response.assignment && typeof response.assignment === 'object') {
           <PromptSuggestions 
             onPromptSelect={handlePromptSelect} 
             isLoading={isLoading} 
+            role={role}
           />
         </div>
       </CardBody>
