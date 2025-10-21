@@ -57,9 +57,9 @@ function PromptSuggestions({ onPromptSelect, isLoading, role }) {
   const teacherItems = [
     "Create a new class",
     "Add a student to my class",
-    "Post an announcement to my Grade SQL class",
+    "Post an announcement to my class",
     "Share a classroom join link",
-    "Create an assignment for the Grade SQL Class, due next Monday",
+    "Create an assignment for the Class, due next Monday",
     "Show submission status for today’s assignment",
     "Who has not submitted their assignment?"
   ];
