@@ -2,9 +2,11 @@
 
 import ComponentContainerCard from '@/components/ComponentContainerCard';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Step, Steps, Wizard } from 'react-albus';
 import { Button, Col, Form, FormControl, FormGroup, FormLabel, ProgressBar, Row } from 'react-bootstrap';
+import Spinner from '@/components/Spinner';
 const BasicWizard = () => {
   return <ComponentContainerCard title="Basic Wizard">
       <Wizard render={({
@@ -554,6 +556,56 @@ const WizardWithFormValidation = () => {
     </ComponentContainerCard>;
 };
 const AllWizard = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [apiSuccess, setApiSuccess] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const myHeaders = new Headers();
+    myHeaders.append('Authorization', "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhYWRraGFuQGVycHRlY2huaWNhbHMuY29tIiwibmFtZSI6InNhYWQga2hhbiIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NJdzBzX1Fid2VzczZEekQxVHBReC1iWDE3OFppWjlMcjN5dkU3SHVac0g2T1BNQVNJPXM5Ni1jIiwicm9sZSI6InRlYWNoZXIiLCJzdWIiOiIxMTI5MTUxOTgzODYzNjk3NTU0OTgiLCJpYXQiOjE3NjExNDgwMTYsImV4cCI6MTc2MTc1MjgxNn0.6IdbOAuF5YaqS3sm95Lrnqw2gh6WUgWc_iDsk8Dp9DQ");
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow'
+    };
+
+    fetch('https://class.xytek.ai/api/company/get', requestOptions)
+      .then(response => response.json())
+      .then(result => {
+        if (!mounted) return;
+        // If API returns a truthy success-like field, treat as success
+        const success = result && (result.success === true || result.status === 'success' || result.ok === true);
+        setApiSuccess(Boolean(success));
+        // if success, redirect to /dashboard
+        if (success) router.push('/dashboard');
+      })
+      .catch(err => {
+        // On error, treat as not successful so wizard shows
+        // console.error(err);
+        setApiSuccess(false);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // While waiting for fetch to finish, show a small spinner
+  if (loading) {
+    return <div className="text-center py-5"><Spinner size="xl" color="primary" type="bordered" className="mb-3" /></div>;
+  }
+
+  // If API returned success true, show loader and do not render wizard (per request)
+  if (apiSuccess) {
+    return <div className="text-center py-5"><Spinner size="xl" color="primary" type="bordered" className="mb-3" /><div>Loading...</div></div>;
+  }
+
   return <>
       <Row>
         <Col xs={12}>
