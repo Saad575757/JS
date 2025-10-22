@@ -410,6 +410,7 @@ export default function WizardPage() {
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
   const [teacherId, setTeacherId] = useState('');
+  const [checkingCompany, setCheckingCompany] = useState(false);
 
   useEffect(() => {
     // Extract all parameters from URL
@@ -461,6 +462,56 @@ export default function WizardPage() {
       localStorage.setItem('teacherData', JSON.stringify(newTeacherData));
     }
   }, [searchParams, router]);
+
+  // When we have a token, verify if company exists / user already completed setup.
+  useEffect(() => {
+    const checkCompany = async () => {
+      const localToken = token || localStorage.getItem('token');
+      console.log('checkCompany: token from state/localStorage ->', localToken);
+      if (!localToken) return;
+
+      setCheckingCompany(true);
+
+      try {
+        const myHeaders = new Headers();
+        myHeaders.append('Authorization', `Bearer ${localToken}`);
+
+        const requestOptions: RequestInit = {
+          method: 'GET',
+          headers: myHeaders,
+          redirect: 'follow'
+        };
+
+        console.log('checkCompany: sending request to', `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/company/get`, requestOptions);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/company/get`, requestOptions);
+        console.log('checkCompany: response status', res.status, res.statusText);
+        const text = await res.text();
+        let data: any = undefined;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          // not JSON
+          console.warn('checkCompany: response not JSON, raw text:', text);
+        }
+        console.log('checkCompany: parsed data ->', data);
+
+        // If API indicates success, navigate to dashboard
+        if (data && data.success === true) {
+          console.log('checkCompany: success true, navigating to /dashboard');
+          router.push('/dashboard');
+        } else {
+          console.log('checkCompany: success !== true, remain on wizard');
+        }
+      } catch (err) {
+        // log and stay on wizard
+        console.error('Company check failed', err);
+      } finally {
+        setCheckingCompany(false);
+      }
+    };
+
+    checkCompany();
+  }, [token, router]);
 
   const handleNextTeacher = (data: TeacherData) => {
     setTeacherData(data);
@@ -535,6 +586,21 @@ export default function WizardPage() {
 
   return (
     <Container className="my-5">
+      {checkingCompany && (
+        <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '40vh' }}>
+          <Card className="shadow text-center p-4" style={{ width: 360 }}>
+            <Card.Body>
+              <div className="mb-3">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+              <Card.Title>Checking account...</Card.Title>
+              <Card.Text className="text-muted">Please wait while we verify your account status.</Card.Text>
+            </Card.Body>
+          </Card>
+        </div>
+      )}
       {/* Progress Indicator */}
       <div className="mb-5">
         <div className="d-flex justify-content-between mb-3">
