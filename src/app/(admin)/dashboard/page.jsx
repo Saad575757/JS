@@ -257,6 +257,7 @@ export default function ChatInput() {
     { sender: 'bot', text: "How can I help you today?", time: new Date() }
   ]);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [voice, setVoice] = useState(null);
   const [voices, setVoices] = useState([]);
@@ -506,6 +507,40 @@ const handleSubmit = async (e) => {
       const fakeEvent = { preventDefault: () => {} };
       handleSubmit(fakeEvent);
     }, 50);
+  };
+
+  // Reset conversation: call external reset API, clear UI state and localStorage, and log responses
+  const handleReset = async () => {
+    setIsResetting(true);
+    try {
+      const token = localStorage.getItem('token');
+      console.log('[AI DEBUG] Resetting conversationId:', conversationId);
+
+      const res = await fetch('https://class.xytek.ai/api/ai/reset', {
+        method: 'POST',
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ conversationId: conversationId || undefined })
+      });
+
+      let data = null;
+      try { data = await res.json(); } catch (e) { data = await res.text().catch(() => null); }
+      console.log('[AI DEBUG] Reset API status:', res.status, 'response:', data);
+
+      // Clear conversation state in UI
+      setConversationId('');
+      localStorage.removeItem('conversationId');
+      setMessages([
+        { sender: 'bot', text: "Hi, I'm Classroom Assistant.", time: new Date() },
+        { sender: 'bot', text: "How can I help you today?", time: new Date() }
+      ]);
+    } catch (err) {
+      console.error('[AI DEBUG] Reset failed:', err);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   // Helper to fetch user name from Google Classroom API
@@ -1339,41 +1374,63 @@ if (response.assignment && typeof response.assignment === 'object') {
               <small className="text-muted">Conversation ID: {conversationId}</small>
             )}
           </div>
-          {/* Language selector for speech recognition */}
-          <div className="me-2">
-            <Dropdown>
-              <Dropdown.Toggle variant="outline-secondary" size="sm">
-                {recognitionLang === 'en-US' ? 'English' : 'Urdu'}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item active={recognitionLang === 'en-US'} onClick={() => setRecognitionLang('en-US')}>
-                  English
-                </Dropdown.Item>
-                <Dropdown.Item active={recognitionLang === 'ur-PK'} onClick={() => setRecognitionLang('ur-PK')}>
-                  Urdu
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </div>
-          {voices.length > 0 && (
-            <Dropdown>
-              <Dropdown.Toggle variant="light" size="sm">
-                <IconifyIcon icon="mdi:account-voice" width={16} className="me-1" />
-                {voice?.name || 'Select Voice'}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {voices.map((v, index) => (
-                  <Dropdown.Item 
-                    key={index} 
-                    active={voice === v}
-                    onClick={() => setVoice(v)}
-                  >
-                    {v.name} ({v.lang})
+
+          <div className="d-flex align-items-center">
+            {/* Language selector for speech recognition */}
+            <div className="me-2">
+              <Dropdown>
+                <Dropdown.Toggle variant="outline-secondary" size="sm">
+                  {recognitionLang === 'en-US' ? 'English' : 'Urdu'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item active={recognitionLang === 'en-US'} onClick={() => setRecognitionLang('en-US')}>
+                    English
                   </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          )}
+                  <Dropdown.Item active={recognitionLang === 'ur-PK'} onClick={() => setRecognitionLang('ur-PK')}>
+                    Urdu
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+
+            {voices.length > 0 && (
+              <Dropdown className="me-2">
+                <Dropdown.Toggle variant="light" size="sm">
+                  <IconifyIcon icon="mdi:account-voice" width={16} className="me-1" />
+                  {voice?.name || 'Select Voice'}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {voices.map((v, index) => (
+                    <Dropdown.Item 
+                      key={index} 
+                      active={voice === v}
+                      onClick={() => setVoice(v)}
+                    >
+                      {v.name} ({v.lang})
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            )}
+
+            {/* Reset conversation button */}
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={handleReset}
+              disabled={isResetting || isLoading}
+              title="Reset conversation and history"
+            >
+              {isResetting ? (
+                <>
+                  <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-1" />
+                  Resetting...
+                </>
+              ) : (
+                'Reset'
+              )}
+            </Button>
+          </div>
         </div>
         
         <div className="flex-grow-1 p-3 overflow-auto chat-messages-container">
