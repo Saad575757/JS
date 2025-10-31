@@ -249,7 +249,7 @@ export default function ChatInput() {
   }, []);
 
   // Derived flag: detect Super Admin in several possible formats
-  const isSuperAdmin = !!(role && role.toString().toLowerCase().replace(/[_-]/g, '') === 'superadmin');
+  // NOTE: `isSuperAdmin` is declared after `role` state to avoid TDZ errors.
 
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -271,6 +271,8 @@ export default function ChatInput() {
   const [recognitionLang, setRecognitionLang] = useState('en-US'); // New: language for speech recognition
   const [userNames, setUserNames] = useState({}); // userId -> name
   const [role, setRole] = useState(null);
+  // Derived flag: detect Super Admin in several possible formats
+  const isSuperAdmin = !!(role && role.toString().toLowerCase().replace(/[_-\s]/g, '') === 'superadmin');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const audioPlayerRef = useRef(null);
