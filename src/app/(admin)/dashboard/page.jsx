@@ -248,6 +248,9 @@ export default function ChatInput() {
     }
   }, []);
 
+  // Derived flag: detect Super Admin in several possible formats
+  const isSuperAdmin = !!(role && role.toString().toLowerCase().replace(/[_-]/g, '') === 'superadmin');
+
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState('');
@@ -1597,13 +1600,15 @@ if (response.assignment && typeof response.assignment === 'object') {
             <audio ref={audioPlayerRef} style={{ display: 'none' }} />
           </div>
         )}
-        {/* Prompt suggestions */}
+        {/* Prompt suggestions - hide for Super Admin users */}
         <div className="p-3">
-          <PromptSuggestions 
-            onPromptSelect={handlePromptSelect} 
-            isLoading={isLoading} 
-            role={role}
-          />
+          {!isSuperAdmin && (
+            <PromptSuggestions 
+              onPromptSelect={handlePromptSelect} 
+              isLoading={isLoading} 
+              role={role}
+            />
+          )}
         </div>
       </CardBody>
     </Card>
