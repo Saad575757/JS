@@ -256,7 +256,7 @@ export default function ChatInput() {
   const [conversationId, setConversationId] = useState('');
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: "Hi, I'm Classroom Assistant.", time: new Date() },
+    { sender: 'bot', text: "Hi, I am Classroom Assistant.", time: new Date() },
     { sender: 'bot', text: "How can I help you today?", time: new Date() }
   ]);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -465,6 +465,17 @@ const handleSubmit = async (e) => {
     const data = await res.json();
     console.log('[AI DEBUG] API response data:', data);
 
+    // Process the response data to remove asterisks
+    if (data.message) {
+      data.message = removeAsterisks(data.message);
+    }
+    if (data.response?.message) {
+      data.response.message = removeAsterisks(data.response.message);
+    }
+    if (data.response?.nextSteps) {
+      data.response.nextSteps = removeAsterisks(data.response.nextSteps);
+    }
+
     const botResponse = {
       sender: 'bot',
       data: data,
@@ -476,7 +487,7 @@ const handleSubmit = async (e) => {
     if (data.response?.message) {
       speak(data.response.message);
     } else if (data.response) {
-      speak("Here's the information you requested.");
+      speak("Here is the information you requested.");
     }
 
     if (data.response?.nextSteps) {
@@ -496,7 +507,7 @@ const handleSubmit = async (e) => {
     setError(error.message || 'Failed to send message');
     setMessages(prev => [...prev, { 
       sender: 'bot', 
-      text: "Sorry, I encountered an error. Please try again.", 
+      text: "I encountered an error. Please try again.", 
       time: new Date(),
       type: 'text'
     }]);
@@ -538,7 +549,7 @@ const handleSubmit = async (e) => {
       setConversationId('');
       localStorage.removeItem('conversationId');
       setMessages([
-        { sender: 'bot', text: "Hi, I'm Classroom Assistant.", time: new Date() },
+        { sender: 'bot', text: "Hi, I am Classroom Assistant.", time: new Date() },
         { sender: 'bot', text: "How can I help you today?", time: new Date() }
       ]);
     } catch (err) {
@@ -546,6 +557,12 @@ const handleSubmit = async (e) => {
     } finally {
       setIsResetting(false);
     }
+  };
+
+  // Helper function to remove asterisks from text
+  const removeAsterisks = (text) => {
+    if (typeof text !== 'string') return text;
+    return text.replace(/\*/g, '');
   };
 
   // Helper to fetch user name from Google Classroom API
@@ -583,7 +600,7 @@ const handleSubmit = async (e) => {
     if (msg.data && typeof msg.data === 'object' && msg.data.message && !msg.data.response) {
       return (
         <div className="d-flex justify-content-between align-items-start">
-          <div>{msg.data.message}</div>
+          <div>{removeAsterisks(msg.data.message)}</div>
           <Button 
             variant="link" 
             size="sm" 
@@ -602,7 +619,7 @@ const handleSubmit = async (e) => {
     if (msg.type === 'text' || !msg.type) {
       return (
         <div className="d-flex justify-content-between align-items-start">
-          <div>{msg.text}</div>
+          <div>{removeAsterisks(msg.text)}</div>
           <Button 
             variant="link" 
             size="sm" 
