@@ -6,61 +6,36 @@ import { Dropdown, DropdownHeader, DropdownMenu, DropdownToggle } from 'react-bo
 import avatar1 from '@/assets/images/users/avatar-10.jpg';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { getUserData, clearAuthData } from '@/lib/auth/tokenManager';
 
 const ProfileDropdown = () => {
   const [userData, setUserData] = useState({
-    name: '',
+    name: 'User',
     email: '',
     picture: '',
-    token: '',
+    role: '',
   });
 
   useEffect(() => {
-    // Get user data from localStorage and fallback to URL-extracted values
-    const storedData = localStorage.getItem('userData');
-    const nameFromStorage = localStorage.getItem('name');
-    const pictureFromStorage = localStorage.getItem('picture');
-    const emailFromStorage = localStorage.getItem('email');
-    const tokenFromStorage = localStorage.getItem('token');
-    let name = '';
-    let email = '';
-    let picture = '';
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        name = parsedData.name || nameFromStorage || 'User';
-        email = parsedData.email || emailFromStorage || '';
-        picture = parsedData.picture || pictureFromStorage || '';
-      } catch (error) {
-        name = nameFromStorage || 'User';
-        email = emailFromStorage || '';
-        picture = pictureFromStorage || '';
-        console.error('Error parsing user data:', error);
-      }
-    } else {
-      name = nameFromStorage || 'User';
-      email = emailFromStorage || '';
-      picture = pictureFromStorage || '';
+    // Get user data from our token manager
+    const data = getUserData();
+    if (data) {
+      setUserData({
+        name: data.name || 'User',
+        email: data.email || '',
+        picture: data.picture || '',
+        role: data.role || '',
+      });
+      console.log('ProfileDropdown userData:', data);
     }
-    setUserData({
-      name,
-      email,
-      picture,
-      token: tokenFromStorage || '',
-    });
-    // Log for debug
-    console.log('ProfileDropdown userData:', { name, email, picture, token: tokenFromStorage });
   }, []);
 
   const handleLogout = () => {
-    // Clear all localStorage data
-    localStorage.clear();
-    // Sign out and redirect to /auth/login
-    signOut({ redirect: false }).then(() => {
-      window.location.href = '/auth/login';
-    });
+    // Clear all authentication data using our token manager
+    clearAuthData();
+    // Redirect to login page
+    window.location.href = '/auth/login';
   };
 
   return (
@@ -94,7 +69,20 @@ const ProfileDropdown = () => {
       <DropdownMenu className="dropdown-menu-end dropdown-menu-animated profile-dropdown">
         <DropdownHeader className="noti-title">
           <h6 className="text-overflow m-0">Welcome {userData.name}!</h6>
-          {userData.email && <small className="text-muted">{userData.email}</small>}
+          {userData.email && <small className="text-muted d-block">{userData.email}</small>}
+          {userData.role && (
+            <span className={`badge mt-1 ${
+              userData.role === 'superadmin' 
+                ? 'bg-danger' 
+                : userData.role === 'teacher' 
+                ? 'bg-primary' 
+                : 'bg-success'
+            }`}>
+              {userData.role === 'superadmin' 
+                ? 'Super Admin' 
+                : userData.role.charAt(0).toUpperCase() + userData.role.slice(1)}
+            </span>
+          )}
         </DropdownHeader>
         <Link href="/pages/profile" className="dropdown-item">
           <IconifyIcon icon="ri:account-pin-circle-line" className="fs-16 align-middle me-1" />

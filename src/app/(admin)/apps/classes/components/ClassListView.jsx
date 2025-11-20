@@ -7,6 +7,7 @@ import {
 import { useState, useEffect } from 'react';
 import Spinner from '@/components/Spinner';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import { getToken } from '@/lib/auth/tokenManager';
 
 export default function ClassListView({ classes, refreshClasses, onClassClick }) {
   const [isStudent, setIsStudent] = useState(false);
@@ -63,7 +64,7 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const url = isEditing 
         ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${currentClassId}`
         : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/`;
@@ -115,7 +116,7 @@ export default function ClassListView({ classes, refreshClasses, onClassClick })
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const classId = classItem.id || classItem._id;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/archive`, 

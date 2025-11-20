@@ -38,6 +38,7 @@ import {
   Alert,
   Dropdown
 } from 'react-bootstrap';
+import { getToken } from '@/lib/auth/tokenManager';
 
 const ClassCards = () => {
   const handleDelete = async (classItem) => {
@@ -45,7 +46,7 @@ const ClassCards = () => {
     setArchiveLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const classId = classItem.id || classItem._id;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
@@ -88,7 +89,7 @@ const ClassCards = () => {
 
   const getClassroomData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const myHeaders = new Headers();
       myHeaders.append('Authorization', `Bearer ${token}`);
       myHeaders.append('Content-Type', 'application/json');
@@ -144,7 +145,7 @@ const ClassCards = () => {
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       let url, method;
 
       if (isEditing) {
@@ -221,7 +222,7 @@ const ClassCards = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const classId = classItem.id || classItem._id;
       
       const response = await fetch(
@@ -256,7 +257,7 @@ const ClassCards = () => {
     setArchiveLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const classId = classItem.id || classItem._id;
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/restore`,

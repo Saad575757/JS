@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { getToken } from '@/lib/auth/tokenManager';
 
 export default function ClassDetailView({ classId }) {
   // State management
@@ -32,7 +33,7 @@ export default function ClassDetailView({ classId }) {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/courses/${classId}/assignments`;
         const response = await fetch(url, {
           headers: {
@@ -78,7 +79,7 @@ export default function ClassDetailView({ classId }) {
   useEffect(() => {
     const fetchGrades = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}/grades`;
         const response = await fetch(url, {
           headers: {
@@ -109,7 +110,7 @@ export default function ClassDetailView({ classId }) {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const myHeaders = new Headers();
         myHeaders.append('Authorization', `Bearer ${token}`);
 
@@ -158,7 +159,7 @@ export default function ClassDetailView({ classId }) {
   useEffect(() => {
     const fetchClassData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         // Fetch class data
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom/${classId}`,
@@ -302,7 +303,7 @@ export default function ClassDetailView({ classId }) {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         // Use calendarId from classData if available, fallback to default
         const calendarId = classData?.calendarId || 'c_classroomdf8d5062@group.calendar.google.com';
         const url = `https://class.xytek.ai/api/calendar/${calendarId}/events`;

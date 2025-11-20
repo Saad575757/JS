@@ -23,6 +23,12 @@ export const MENU_ITEMS = [{
   icon: 'ri:artboard-line',
   label: 'Archived Classes',
   url: '/apps/kanban'
+},
+{
+  key: 'apps-automation',
+  icon: 'ri:robot-2-line',
+  label: 'Email Automation',
+  url: '/apps/automation'
 }, 
 // {
 //   key: 'apps-invoices',

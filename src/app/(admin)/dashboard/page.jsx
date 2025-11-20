@@ -51,6 +51,7 @@ import {
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import './chat-responsive.css';
 import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
+import { getToken } from '@/lib/auth/tokenManager';
 // Prompt Suggestions Component (defined in the same file)
 function PromptSuggestions({ onPromptSelect, isLoading, role }) {
   // Role-specific prompt lists
@@ -239,7 +240,7 @@ export default function ChatInput() {
       if (picture) localStorage.setItem('picture', picture);
       // Console log the values for debugging
       console.log('Dashboard extracted values:', {
-        token: token || localStorage.getItem('token'),
+        token: token || getToken(),
         role: role || localStorage.getItem('role'),
         name: name || localStorage.getItem('name'),
         email: email || localStorage.getItem('email'),
@@ -437,7 +438,7 @@ const handleSubmit = async (e) => {
   setMessage('');
   
   try {
-    const token = localStorage.getItem('token');
+    const token = getToken();
 
     // ✅ Generate or reuse conversationId
     let currentConversationId = conversationId;
@@ -529,7 +530,7 @@ const handleSubmit = async (e) => {
   const handleReset = async () => {
     setIsResetting(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       console.log('[AI DEBUG] Resetting conversationId:', conversationId);
 
       const res = await fetch('https://class.xytek.ai/api/ai/reset', {
@@ -587,7 +588,7 @@ const handleSubmit = async (e) => {
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
     if (lastMsg && lastMsg.type === 'structured' && lastMsg.data && lastMsg.data.submissions) {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const userIds = lastMsg.data.submissions.map(s => s.userId).filter(Boolean);
       userIds.forEach(userId => {
         if (!userNames[userId]) fetchUserName(userId, token);
@@ -1294,7 +1295,7 @@ if (response.assignment && typeof response.assignment === 'object') {
       // Add user message to chat history
       setMessages(prev => [...prev, { sender: 'user', text: transcript, time: new Date() }]);
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
           method: 'POST',
           headers: {

@@ -371,6 +371,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, Col, Container, Row, Form, Alert, Button, ProgressBar } from 'react-bootstrap';
 import { useRouter } from 'next/navigation';
+import { getToken } from '@/lib/auth/tokenManager';
 
 type TeacherData = {
   name: string;
@@ -466,7 +467,7 @@ export default function WizardPage() {
   // When we have a token, verify if company exists / user already completed setup.
   useEffect(() => {
     const checkCompany = async () => {
-      const localToken = token || localStorage.getItem('token');
+      const localToken = token || getToken();
       console.log('checkCompany: token from state/localStorage ->', localToken);
       if (!localToken) return;
 

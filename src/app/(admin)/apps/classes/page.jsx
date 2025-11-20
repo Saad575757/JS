@@ -822,6 +822,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ClassListView from './components/ClassListView';
+import { getToken } from '@/lib/auth/tokenManager';
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState([]);
@@ -829,7 +830,7 @@ export default function ClassesPage() {
 
   const getClassroomData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       console.log('Fetching classroom data with token:', token);
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom`, {
         method: 'GET',
