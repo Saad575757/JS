@@ -5,12 +5,8 @@ import Image from 'next/image';
 import AuthLogo from '@/components/AuthLogo';
 import LoginForm from './components/LoginForm';
 import authImg from '@/assets/images/auth-img.jpg';
-import usePendingInvitation from '@/hooks/usePendingInvitation';
 
 const Login = () => {
-  // Handle pending invitations after login
-  usePendingInvitation();
-
   return (
     <div className="account-pages p-sm-5 position-relative">
       <Container>

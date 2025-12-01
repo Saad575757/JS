@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Container, Card, CardBody, Spinner, Alert, Button } from 'react-bootstrap';
+import { Container, Card, CardBody, Spinner, Alert } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
-import { getToken } from '@/lib/auth/tokenManager';
 
 export default function AcceptInvitationPage() {
   const router = useRouter();
@@ -14,7 +13,6 @@ export default function AcceptInvitationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [needsAuth, setNeedsAuth] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -23,30 +21,10 @@ export default function AcceptInvitationPage() {
       return;
     }
 
-    checkAuthAndAccept();
+    acceptInvitation();
   }, [token]);
 
-  const checkAuthAndAccept = async () => {
-    // Check if user is authenticated
-    const authToken = getToken();
-    
-    if (!authToken) {
-      // User is not authenticated, store the invitation token and redirect to signup
-      setNeedsAuth(true);
-      setLoading(false);
-      
-      // Store the invitation token in localStorage for later use
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pendingInvitationToken', token);
-      }
-      return;
-    }
-
-    // User is authenticated, proceed with invitation acceptance
-    await acceptInvitation(authToken);
-  };
-
-  const acceptInvitation = async (authToken) => {
+  const acceptInvitation = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -56,7 +34,6 @@ export default function AcceptInvitationPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({ token }),
       });
@@ -64,20 +41,7 @@ export default function AcceptInvitationPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // If still 401, authentication failed
-        if (response.status === 401) {
-          setNeedsAuth(true);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pendingInvitationToken', token);
-          }
-          return;
-        }
         throw new Error(data.message || 'Failed to accept invitation');
-      }
-
-      // Clear the pending invitation token
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('pendingInvitationToken');
       }
 
       setSuccess(true);
@@ -101,24 +65,12 @@ export default function AcceptInvitationPage() {
     }
   };
 
-  const handleCreateAccount = () => {
-    // Redirect to registration page with return URL
-    const returnUrl = encodeURIComponent(`/accept-invitation?token=${token}`);
-    router.push(`/auth/register?returnUrl=${returnUrl}&role=student`);
-  };
-
-  const handleLogin = () => {
-    // Redirect to login page with return URL
-    const returnUrl = encodeURIComponent(`/accept-invitation?token=${token}`);
-    router.push(`/auth/login?returnUrl=${returnUrl}`);
-  };
-
   return (
     <div className="d-flex align-items-center justify-content-center min-vh-100 bg-light">
       <Container>
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
-            <Card className="shadow-lg border-0">
+            <Card>
               <CardBody className="p-4 text-center">
                 {loading && (
                   <>
@@ -128,56 +80,7 @@ export default function AcceptInvitationPage() {
                   </>
                 )}
 
-                {!loading && needsAuth && (
-                  <>
-                    <div className="mb-4">
-                      <IconifyIcon 
-                        icon="ri:user-add-line" 
-                        style={{ fontSize: '4rem', color: '#0d6efd' }}
-                      />
-                    </div>
-                    <h4 className="text-primary mb-3">Welcome to the Class!</h4>
-                    <p className="text-muted mb-4">
-                      To join this class, you need to create a student account first.
-                    </p>
-                    
-                    <Alert variant="info" className="text-start mb-4">
-                      <IconifyIcon icon="ri:information-line" className="me-2" />
-                      <small>
-                        <strong>New to the platform?</strong> Create a free student account to get started.
-                        Already have an account? Simply log in to join.
-                      </small>
-                    </Alert>
-
-                    <div className="d-grid gap-2">
-                      <Button 
-                        variant="primary" 
-                        size="lg"
-                        onClick={handleCreateAccount}
-                      >
-                        <IconifyIcon icon="ri:user-add-line" className="me-2" />
-                        Create Student Account
-                      </Button>
-                      
-                      <Button 
-                        variant="outline-primary"
-                        onClick={handleLogin}
-                      >
-                        <IconifyIcon icon="ri:login-box-line" className="me-2" />
-                        Already have an account? Login
-                      </Button>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-top">
-                      <small className="text-muted">
-                        <IconifyIcon icon="ri:shield-check-line" className="me-1" />
-                        Your invitation will be automatically applied after you sign up or log in
-                      </small>
-                    </div>
-                  </>
-                )}
-
-                {!loading && !needsAuth && error && (
+                {!loading && error && (
                   <>
                     <div className="mb-3">
                       <IconifyIcon 
@@ -189,25 +92,16 @@ export default function AcceptInvitationPage() {
                     <Alert variant="danger" className="mt-3 text-start">
                       {error}
                     </Alert>
-                    <div className="d-grid gap-2 mt-3">
-                      <Button 
-                        variant="primary"
-                        onClick={handleCreateAccount}
-                      >
-                        <IconifyIcon icon="ri:user-add-line" className="me-2" />
-                        Create Account
-                      </Button>
-                      <Button 
-                        variant="outline-secondary"
-                        onClick={() => router.push('/apps/classes')}
-                      >
-                        Go to Classes
-                      </Button>
-                    </div>
+                    <button 
+                      className="btn btn-primary mt-3"
+                      onClick={() => router.push('/apps/classes')}
+                    >
+                      Go to Classes
+                    </button>
                   </>
                 )}
 
-                {!loading && !needsAuth && success && (
+                {!loading && success && (
                   <>
                     <div className="mb-3">
                       <IconifyIcon 

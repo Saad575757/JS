@@ -5,12 +5,8 @@ import Image from 'next/image';
 import AuthLogo from '@/components/AuthLogo';
 import RegisterForm from './components/RegisterForm';
 import authImg from '@/assets/images/auth-img.jpg';
-import usePendingInvitation from '@/hooks/usePendingInvitation';
 
 const Register = () => {
-  // Handle pending invitations after registration
-  usePendingInvitation();
-
   return (
     <div className="account-pages p-sm-5 position-relative">
       <Container>
