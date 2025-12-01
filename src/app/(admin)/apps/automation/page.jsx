@@ -32,6 +32,7 @@ import {
 } from '@/lib/api/automation';
 import WorkflowBuilder from './components/WorkflowBuilder';
 import ExecutionHistory from './components/ExecutionHistory';
+import AIConfigModal from './components/AIConfigModal';
 
 export default function AutomationPage() {
   const [agents, setAgents] = useState([]);
@@ -39,6 +40,7 @@ export default function AutomationPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAIConfigModal, setShowAIConfigModal] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [activeTab, setActiveTab] = useState('agents');
   
@@ -57,7 +59,23 @@ export default function AutomationPage() {
       setLoading(true);
       setError(null);
       const data = await getAgents();
-      setAgents(data.agents || []);
+      console.log('Raw API Response:', data);
+      
+      // Handle different API response structures
+      let agentsList = [];
+      if (Array.isArray(data)) {
+        // API returns array directly
+        agentsList = data;
+      } else if (data.agents && Array.isArray(data.agents)) {
+        // API returns {agents: [...]}
+        agentsList = data.agents;
+      } else if (data.data && Array.isArray(data.data)) {
+        // API returns {data: [...]}
+        agentsList = data.data;
+      }
+      
+      console.log('Parsed agents:', agentsList);
+      setAgents(agentsList);
     } catch (err) {
       console.error('Error loading agents:', err);
       setError(err.message);
@@ -176,16 +194,26 @@ export default function AutomationPage() {
                   <IconifyIcon icon="ri:robot-2-line" className="me-2" />
                   Email Automation
                 </CardTitle>
-                {activeTab === 'agents' && (
+                <div className="d-flex gap-2">
                   <Button
-                    variant="primary"
+                    variant="outline-primary"
                     size="sm"
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={() => setShowAIConfigModal(true)}
                   >
-                    <IconifyIcon icon="ri:add-line" className="me-1" />
-                    Create Agent
+                    <IconifyIcon icon="ri:sparkling-line" className="me-1" />
+                    AI Settings
                   </Button>
-                )}
+                  {activeTab === 'agents' && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setShowCreateModal(true)}
+                    >
+                      <IconifyIcon icon="ri:add-line" className="me-1" />
+                      Create Agent
+                    </Button>
+                  )}
+                </div>
               </div>
               <Nav variant="tabs" className="mt-3">
                 <Nav.Item>
@@ -232,13 +260,29 @@ export default function AutomationPage() {
                       <p className="text-muted">
                         Create your first email automation agent to get started
                       </p>
-                      <Button
-                        variant="primary"
-                        onClick={() => setShowCreateModal(true)}
-                      >
-                        <IconifyIcon icon="ri:add-line" className="me-1" />
-                        Create First Agent
-                      </Button>
+                      <Alert variant="info" className="mb-3 mx-auto" style={{ maxWidth: '500px' }}>
+                        <IconifyIcon icon="ri:lightbulb-line" className="me-2" />
+                        <strong>First time? Configure AI Settings first!</strong>
+                        <p className="mb-0 mt-2 small">
+                          Add your OpenAI API key to enable AI-powered email responses.
+                        </p>
+                      </Alert>
+                      <div className="d-flex gap-2 justify-content-center">
+                        <Button
+                          variant="outline-primary"
+                          onClick={() => setShowAIConfigModal(true)}
+                        >
+                          <IconifyIcon icon="ri:sparkling-line" className="me-1" />
+                          Configure AI
+                        </Button>
+                        <Button
+                          variant="primary"
+                          onClick={() => setShowCreateModal(true)}
+                        >
+                          <IconifyIcon icon="ri:add-line" className="me-1" />
+                          Create First Agent
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <Row>
@@ -325,12 +369,14 @@ export default function AutomationPage() {
                                 </Badge>
                                 <Badge bg="info" className="me-2">{agent.type}</Badge>
                                 {(agent.type === 'email_inbound' || agent.type === 'email_outbound') && (
-                                  <Badge bg={agent.emailConfigured ? 'success' : 'danger'}>
+                                  <Badge bg={agent.isGmailConnected ? 'success' : 'danger'}>
                                     <IconifyIcon 
-                                      icon={agent.emailConfigured ? 'ri:mail-check-line' : 'ri:mail-close-line'} 
+                                      icon={agent.isGmailConnected ? 'ri:mail-check-line' : 'ri:mail-close-line'} 
                                       className="me-1" 
                                     />
-                                    {agent.emailConfigured ? 'Gmail Connected' : 'Gmail Not Connected'}
+                                    {agent.isGmailConnected 
+                                      ? `Gmail: ${agent.connectedEmail || 'Connected'}` 
+                                      : 'Gmail Not Connected'}
                                   </Badge>
                                 )}
                               </div>
@@ -338,7 +384,7 @@ export default function AutomationPage() {
                               <div className="d-grid gap-2">
                                 {/* Show Gmail authorization button if not configured */}
                                 {(agent.type === 'email_inbound' || agent.type === 'email_outbound') && 
-                                 !agent.emailConfigured && (
+                                 !agent.isGmailConnected && (
                                   <Button
                                     variant="warning"
                                     size="sm"
@@ -364,7 +410,7 @@ export default function AutomationPage() {
                                   }
                                   disabled={
                                     (agent.type === 'email_inbound' || agent.type === 'email_outbound') && 
-                                    !agent.emailConfigured
+                                    !agent.isGmailConnected
                                   }
                                 >
                                   <IconifyIcon
@@ -381,15 +427,26 @@ export default function AutomationPage() {
                                 </Button>
                               </div>
 
-                              {agent.config?.pollingInterval && (
-                                <small className="text-muted mt-2 d-block">
-                                  <IconifyIcon
-                                    icon="ri:time-line"
-                                    className="me-1"
-                                  />
-                                  Checks every {agent.config.pollingInterval}s
-                                </small>
-                              )}
+                              <div className="mt-2">
+                                {agent.config?.pollingInterval && (
+                                  <small className="text-muted d-block">
+                                    <IconifyIcon
+                                      icon="ri:time-line"
+                                      className="me-1"
+                                    />
+                                    Checks every {agent.config.pollingInterval}s
+                                  </small>
+                                )}
+                                {agent.isGmailConnected && agent.connectedEmail && (
+                                  <small className="text-success d-block">
+                                    <IconifyIcon
+                                      icon="ri:mail-check-line"
+                                      className="me-1"
+                                    />
+                                    {agent.connectedEmail}
+                                  </small>
+                                )}
+                              </div>
                             </CardBody>
                           </Card>
                         </Col>
@@ -425,6 +482,16 @@ export default function AutomationPage() {
             </CardBody>
           </Card>
         </Tab.Container>
+
+        {/* AI Config Modal */}
+        <AIConfigModal
+          show={showAIConfigModal}
+          onHide={() => setShowAIConfigModal(false)}
+          onSaved={() => {
+            setSuccess('AI configuration saved! You can now use AI-powered workflows.');
+            setShowAIConfigModal(false);
+          }}
+        />
 
         {/* Create Agent Modal */}
         <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>

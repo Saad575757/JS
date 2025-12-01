@@ -14,8 +14,21 @@ const OtherLayout = ({
   return <>
      <Suspense>{children}</Suspense> 
 
-      <footer className="footer footer-alt fw-medium">
-        <span className="text-dark-emphasis">{currentYear} © Xytek - Classroom by Xytek</span>
+      <footer 
+        className="footer footer-alt" 
+        style={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: 0, 
+          right: 0, 
+          padding: '8px 0',
+          textAlign: 'center',
+          fontSize: '0.75rem',
+          opacity: 0.6,
+          zIndex: 1
+        }}
+      >
+        <span className="text-muted">{currentYear} © Xytek - Classroom by Xytek</span>
       </footer>
     </>;
 };

@@ -216,9 +216,9 @@ export async function deleteWorkflow(workflowId) {
 }
 
 /**
- * Execute workflow manually
+ * Execute workflow manually with optional data
  */
-export async function executeWorkflow(workflowId) {
+export async function executeWorkflow(workflowId, data = null) {
   const token = getToken();
   const response = await fetch(`${API_BASE_URL}/automation/workflows/${workflowId}/execute`, {
     method: 'POST',
@@ -226,6 +226,7 @@ export async function executeWorkflow(workflowId) {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    body: data ? JSON.stringify({ data }) : JSON.stringify({}),
   });
 
   if (!response.ok) throw new Error('Failed to execute workflow');
