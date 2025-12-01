@@ -821,44 +821,55 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ClassListView from './components/ClassListView';
-import { getToken } from '@/lib/auth/tokenManager';
+import { Container } from 'react-bootstrap';
+import PageTitle from '@/components/PageTitle';
+import ClassListView_New from './components/ClassListView_New';
+import { getCourses } from '@/lib/api/courses';
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const router = useRouter();
 
-  const getClassroomData = async () => {
+  const loadClasses = async () => {
     try {
-      const token = getToken();
-      console.log('Fetching classroom data with token:', token);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/classroom`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      // setClasses(await response.json());
-             const result = await response.json();
-       console.log('Classroom data:', result);
-       setClasses(result);
+      setLoading(true);
+      setError(null);
+      const response = await getCourses();
+      // Handle different response structures
+      if (response.success && Array.isArray(response.courses)) {
+        setClasses(response.courses);
+      } else if (Array.isArray(response)) {
+        setClasses(response);
+      } else {
+        setClasses([]);
+      }
     } catch (error) {
-      console.error('Error fetching classroom data:', error);
+      console.error('Error fetching classes:', error);
+      setError(error.message);
+      setClasses([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getClassroomData();
+    loadClasses();
   }, []);
 
   return (
-    <ClassListView 
-      classes={classes} 
-      refreshClasses={getClassroomData}
-      onClassClick={(id) => router.push(`/apps/classes/${id}`)}
-    />
+    <>
+      <PageTitle title="Classes" />
+      <Container fluid>
+        <ClassListView_New 
+          classes={classes} 
+          refreshClasses={loadClasses}
+          loading={loading}
+          error={error}
+          onClassClick={(id) => router.push(`/apps/classes/${id}`)}
+        />
+      </Container>
+    </>
   );
 }
