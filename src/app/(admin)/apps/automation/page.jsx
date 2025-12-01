@@ -556,7 +556,7 @@ export default function AutomationPage() {
                 <Alert variant="info" className="mb-0">
                   <IconifyIcon icon="ri:information-line" className="me-2" />
                   <strong>Gmail Authorization Required:</strong> After creating this agent, 
-                  you'll be prompted to authorize Gmail access. This is required for the agent to work.
+                  you&apos;ll be prompted to authorize Gmail access. This is required for the agent to work.
                 </Alert>
               )}
             </Modal.Body>

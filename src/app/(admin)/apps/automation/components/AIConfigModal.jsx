@@ -130,7 +130,7 @@ export default function AIConfigModal({ show, onHide, onSaved }) {
             <strong>Your API Key, Your Control</strong>
             <p className="mb-0 mt-2 small">
               Configure your own OpenAI API key for AI-powered automation. 
-              Your key is encrypted and securely stored. You're only charged 
+              Your key is encrypted and securely stored. You&apos;re only charged 
               by OpenAI for your usage.
             </p>
           </Alert>

@@ -1306,7 +1306,7 @@ export default function WorkflowBuilder({ agent, onBack }) {
                           placeholder="You are a helpful customer support agent..."
                         />
                         <Form.Text className="text-muted">
-                          Defines the AI's personality and behavior
+                          Defines the AI&apos;s personality and behavior
                         </Form.Text>
                       </Form.Group>
 
@@ -1458,7 +1458,7 @@ export default function WorkflowBuilder({ agent, onBack }) {
                         <IconifyIcon icon="ri:lightbulb-line" className="me-2" />
                         <small>
                           <strong>Generated content is available as {`{{ai_content}}`}</strong> - 
-                          Use this variable in the "Send Email" action to include the AI-generated content.
+                          Use this variable in the &quot;Send Email&quot; action to include the AI-generated content.
                         </small>
                       </Alert>
                     </>
@@ -1585,7 +1585,7 @@ export default function WorkflowBuilder({ agent, onBack }) {
                           {recipientLists.length === 0 ? (
                             <>
                               <IconifyIcon icon="ri:error-warning-line" className="me-1 text-warning" />
-                              No recipient lists found. Click "Upload CSV" button above to upload a list.
+                              No recipient lists found. Click &quot;Upload CSV&quot; button above to upload a list.
                             </>
                           ) : (
                             `${recipientLists.length} list(s) available`
@@ -1633,7 +1633,7 @@ export default function WorkflowBuilder({ agent, onBack }) {
                          />
                          <Form.Text className="text-muted">
                            💡 <strong>Recommended:</strong> Use {`{{ai_content}}`} to insert AI-generated content. 
-                           Add "AI Content Generator" action first, then use {`{{ai_content}}`} here.
+                           Add &quot;AI Content Generator&quot; action first, then use {`{{ai_content}}`} here.
                          </Form.Text>
                        </Form.Group>
 
@@ -1814,7 +1814,7 @@ export default function WorkflowBuilder({ agent, onBack }) {
                    <IconifyIcon icon="ri:check-line" className="me-2" />
                    <strong>Ready to Execute</strong>
                    <p className="mb-0 mt-2 small">
-                     This workflow doesn't require any variable data. Click "Execute Workflow" to run it.
+                     This workflow doesn&apos;t require any variable data. Click &quot;Execute Workflow&quot; to run it.
                    </p>
                  </Alert>
                );

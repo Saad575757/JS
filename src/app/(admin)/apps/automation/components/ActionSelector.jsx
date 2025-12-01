@@ -80,7 +80,7 @@ export default function ActionSelector({ show, onHide, actionTypes, onSelect }) 
               icon="ri:search-line" 
               style={{ fontSize: '3rem', opacity: 0.3 }}
             />
-            <p className="text-muted mt-3">No actions found matching "{searchTerm}"</p>
+            <p className="text-muted mt-3">No actions found matching &quot;{searchTerm}&quot;</p>
           </div>
         ) : (
           <Row>
