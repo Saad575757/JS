@@ -824,7 +824,7 @@ import { useRouter } from 'next/navigation';
 import { Container } from 'react-bootstrap';
 import PageTitle from '@/components/PageTitle';
 import ClassListView_New from './components/ClassListView_New';
-import { getCourses } from '@/lib/api/courses';
+import { getCourses, getCourseStudents } from '@/lib/api/courses';
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState([]);
@@ -838,13 +838,32 @@ export default function ClassesPage() {
       setError(null);
       const response = await getCourses();
       // Handle different response structures
+      let courses = [];
       if (response.success && Array.isArray(response.courses)) {
-        setClasses(response.courses);
+        courses = response.courses;
       } else if (Array.isArray(response)) {
-        setClasses(response);
+        courses = response;
       } else {
-        setClasses([]);
+        courses = [];
       }
+      
+      // Fetch student count for each course
+      const coursesWithCounts = await Promise.all(
+        courses.map(async (course) => {
+          try {
+            const studentsRes = await getCourseStudents(course.id);
+            const studentCount = studentsRes.success 
+              ? (studentsRes.count || studentsRes.students?.length || 0)
+              : (studentsRes.length || 0);
+            return { ...course, student_count: studentCount };
+          } catch (err) {
+            console.error(`Error fetching students for course ${course.id}:`, err);
+            return course; // Return course without updated count
+          }
+        })
+      );
+      
+      setClasses(coursesWithCounts);
     } catch (error) {
       console.error('Error fetching classes:', error);
       setError(error.message);

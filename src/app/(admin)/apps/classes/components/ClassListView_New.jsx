@@ -122,90 +122,119 @@ export default function ClassListView({ classes, refreshClasses, loading, error:
         </div>
       ) : (
         // Course Grid
-        <Row xs={1} md={2} lg={3} xl={4} className="g-4 mb-5">
+        <Row xs={1} md={2} lg={3} className="g-4 mb-5">
           {classes.map((course) => (
             <Col key={course.id}>
               <Card 
-                className="h-100 shadow-sm border-0 hover-lift"
+                className="h-100 border-0 shadow-hover overflow-hidden"
                 style={{ 
                   cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  borderLeft: '4px solid #0d6efd !important'
+                  transition: 'all 0.3s ease',
+                  borderRadius: '12px'
                 }}
                 onClick={() => onClassClick(course.id)}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.15)';
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(13, 110, 253, 0.2)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
                 }}
               >
-                <CardHeader className="bg-primary text-white border-0 d-flex justify-content-between align-items-center">
-                  <div className="d-flex align-items-center">
-                    <IconifyIcon icon="ri:book-open-line" className="me-2" style={{ fontSize: '1.5rem' }} />
-                    <span className="fw-bold">{course.name}</span>
-                  </div>
-                  {isTeacher && (
-                    <Dropdown onClick={(e) => e.stopPropagation()}>
-                      <Dropdown.Toggle
-                        variant="link"
-                        className="text-white p-0 shadow-none"
-                        style={{ fontSize: '1.5rem' }}
+                {/* Gradient Header */}
+                <div 
+                  className="position-relative text-white p-4"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    minHeight: '140px'
+                  }}
+                >
+                  <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div className="d-flex align-items-center">
+                      <div 
+                        className="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center me-2"
+                        style={{ width: '40px', height: '40px' }}
                       >
-                        <IconifyIcon icon="ri:more-2-fill" />
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => copyClassLink(course.id)}>
-                          <IconifyIcon icon="ri:link" className="me-2" />
-                          Copy Link
-                        </Dropdown.Item>
-                        <Dropdown.Divider />
-                        <Dropdown.Item 
-                          className="text-danger"
-                          onClick={() => handleDeleteCourse(course.id)}
+                        <IconifyIcon icon="ri:book-open-line" style={{ fontSize: '1.3rem' }} />
+                      </div>
+                    </div>
+                    {isTeacher && (
+                      <Dropdown onClick={(e) => e.stopPropagation()}>
+                        <Dropdown.Toggle
+                          variant="link"
+                          className="text-white p-0 shadow-none"
+                          style={{ fontSize: '1.3rem' }}
                         >
-                          <IconifyIcon icon="ri:delete-bin-line" className="me-2" />
-                          Delete
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  )}
-                </CardHeader>
-                <CardBody>
-                  <p className="text-muted mb-3" style={{ minHeight: '60px' }}>
-                    {course.description || 'No description provided'}
-                  </p>
-                  <div className="d-flex align-items-center mb-2">
-                    <IconifyIcon icon="ri:user-line" className="me-2 text-primary" />
-                    <small className="text-muted">
-                      <strong>{course.teacher_name || 'Teacher'}</strong>
-                    </small>
+                          <IconifyIcon icon="ri:more-2-fill" />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => copyClassLink(course.id)}>
+                            <IconifyIcon icon="ri:link" className="me-2" />
+                            Copy Link
+                          </Dropdown.Item>
+                          <Dropdown.Divider />
+                          <Dropdown.Item 
+                            className="text-danger"
+                            onClick={() => handleDeleteCourse(course.id)}
+                          >
+                            <IconifyIcon icon="ri:delete-bin-line" className="me-2" />
+                            Delete
+                          </Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    )}
                   </div>
-                  <div className="d-flex align-items-center">
-                    <IconifyIcon icon="ri:group-line" className="me-2 text-primary" />
-                    <small className="text-muted">
-                      {course.student_count || 0} students
-                    </small>
+                  <h5 className="fw-bold mb-0">{course.name}</h5>
+                </div>
+
+                {/* Body */}
+                <CardBody className="p-4">
+                  {course.description && (
+                    <p className="text-muted mb-3" style={{ minHeight: '40px', fontSize: '0.9rem' }}>
+                      {course.description}
+                    </p>
+                  )}
+                  
+                  {/* Teacher Info */}
+                  <div className="d-flex align-items-center mb-2 pb-2 border-bottom">
+                    <div 
+                      className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2"
+                      style={{ width: '32px', height: '32px' }}
+                    >
+                      <IconifyIcon icon="ri:user-line" className="text-primary" style={{ fontSize: '1rem' }} />
+                    </div>
+                    <div>
+                      <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>Teacher</small>
+                      <strong style={{ fontSize: '0.85rem' }}>{course.teacher_name || 'Teacher'}</strong>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Row */}
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center">
+                      <IconifyIcon icon="ri:group-line" className="me-2 text-success" style={{ fontSize: '1.2rem' }} />
+                      <span className="fw-semibold">{course.student_count || 0}</span>
+                      <small className="text-muted ms-1">students</small>
+                    </div>
+                    {(course.section || course.room) && (
+                      <div className="d-flex gap-2">
+                        {course.section && (
+                          <Badge bg="light" text="dark" className="d-flex align-items-center">
+                            <IconifyIcon icon="ri:folder-line" className="me-1" style={{ fontSize: '0.8rem' }} />
+                            {course.section}
+                          </Badge>
+                        )}
+                        {course.room && (
+                          <Badge bg="light" text="dark" className="d-flex align-items-center">
+                            <IconifyIcon icon="ri:door-line" className="me-1" style={{ fontSize: '0.8rem' }} />
+                            {course.room}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardBody>
-                {(course.section || course.room) && (
-                  <CardFooter className="bg-light border-0 d-flex justify-content-between text-muted small">
-                    {course.section && (
-                      <span>
-                        <IconifyIcon icon="ri:folder-line" className="me-1" />
-                        {course.section}
-                      </span>
-                    )}
-                    {course.room && (
-                      <span>
-                        <IconifyIcon icon="ri:door-line" className="me-1" />
-                        {course.room}
-                      </span>
-                    )}
-                  </CardFooter>
-                )}
               </Card>
             </Col>
           ))}
@@ -349,6 +378,10 @@ export default function ClassListView({ classes, refreshClasses, loading, error:
       </Modal>
 
       <style jsx global>{`
+        .shadow-hover {
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
         .hover-lift {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
