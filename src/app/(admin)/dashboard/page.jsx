@@ -679,7 +679,223 @@ const handleSubmit = async (e) => {
         });
       }
       
-      // Custom: Handle file attachment request via ongoingAction
+      // Debug logging for awaitingFileUpload
+      if (response.awaitingFileUpload) {
+        console.log('[ATTACHMENT DEBUG] awaitingFileUpload detected:', {
+          awaitingFileUpload: response.awaitingFileUpload,
+          assignmentData: response.assignmentData
+        });
+      }
+      
+      // Custom: Handle file attachment request via awaitingFileUpload (NEW FORMAT)
+      if (response.awaitingFileUpload === true && response.assignmentData) {
+        const params = response.assignmentData;
+        
+        return (
+          <div>
+            <div className="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <Badge bg="warning" className="me-2">Attachment Required</Badge>
+                <strong>Upload File</strong>
+              </div>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => toggleSpeech(response.message || 'Please upload your file')}
+                className="p-0 ms-2"
+                title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+              >
+                <IconifyIcon
+                  icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+                  width={16}
+                />
+              </Button>
+            </div>
+
+            <Card className="mb-3 shadow-sm border-warning">
+              <Card.Body>
+                <Alert variant="info" className="mb-3">
+                  <IconifyIcon icon="ri:information-line" className="me-2" />
+                  Please upload a file to attach to this assignment.
+                </Alert>
+                
+                <div className="mb-3">
+                  <strong>Assignment Details:</strong>
+                  <ul className="mt-2">
+                    {params.courseName && <li><strong>Course:</strong> {params.courseName}</li>}
+                    {params.title && <li><strong>Title:</strong> {params.title}</li>}
+                    {params.description && <li><strong>Description:</strong> {params.description}</li>}
+                    {params.dueDate && <li><strong>Due Date:</strong> {new Date(params.dueDate).toLocaleString()}</li>}
+                    {params.maxPoints && <li><strong>Max Points:</strong> {params.maxPoints}</li>}
+                  </ul>
+                </div>
+
+                <Form.Group className="mb-3">
+                  <Form.Label className="fw-bold">
+                    <IconifyIcon icon="ri:attachment-2" className="me-2" />
+                    Select File to Attach
+                  </Form.Label>
+                  <Form.Control
+                    type="file"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        setPendingAttachment({ 
+                          assignmentData: params, 
+                          file,
+                          conversationId: response.conversationId 
+                        });
+                      }
+                    }}
+                    disabled={uploadingFile}
+                  />
+                  <Form.Text className="text-muted">
+                    Supported formats: PDF, Word, Excel, PowerPoint, Images, Text files (Max 50MB)
+                  </Form.Text>
+                </Form.Group>
+
+                {pendingAttachment && pendingAttachment.file && (
+                  <div className="mb-3">
+                    <Alert variant="success">
+                      <IconifyIcon icon="ri:file-check-line" className="me-2" />
+                      <strong>File selected:</strong> {pendingAttachment.file.name} 
+                      ({(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB)
+                    </Alert>
+                  </div>
+                )}
+
+                <div className="d-flex gap-2">
+                  <Button
+                    variant="primary"
+                    onClick={async () => {
+                      if (!pendingAttachment || !pendingAttachment.file) {
+                        alert('Please select a file first');
+                        return;
+                      }
+                      
+                      setUploadingFile(true);
+                      try {
+                        // Create FormData for file upload
+                        const formData = new FormData();
+                        formData.append('file', pendingAttachment.file);
+                        
+                        // Upload file to your backend
+                        const token = getToken();
+                        const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': token ? `Bearer ${token}` : ''
+                          },
+                          body: formData
+                        });
+                        
+                        if (!uploadRes.ok) throw new Error('File upload failed');
+                        
+                        const uploadData = await uploadRes.json();
+                        const fileUrl = uploadData.url || uploadData.fileUrl;
+                        
+                        // Tell AI we have the file URL via chat message
+                        const fileMessage = `File uploaded: ${fileUrl}`;
+                        setMessage('');
+                        setMessages(prev => [...prev, { 
+                          sender: 'user', 
+                          text: fileMessage, 
+                          time: new Date() 
+                        }]);
+                        
+                        // Send message to AI with file URL
+                        const aiRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': token ? `Bearer ${token}` : '',
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            message: fileMessage,
+                            conversationId: pendingAttachment.conversationId || conversationId,
+                            fileUrl: fileUrl
+                          })
+                        });
+                        
+                        if (!aiRes.ok) throw new Error('AI request failed');
+                        
+                        const aiData = await aiRes.json();
+                        
+                        // Add bot response
+                        const botResponse = {
+                          sender: 'bot',
+                          data: aiData,
+                          time: new Date(),
+                          type: 'structured'
+                        };
+                        setMessages(prev => [...prev, botResponse]);
+                        
+                        // Clear pending attachment
+                        setPendingAttachment(null);
+                        
+                        // Show success message
+                        if (aiData.message) {
+                          speak(aiData.message);
+                        }
+                        
+                      } catch (error) {
+                        console.error('Error uploading file:', error);
+                        alert('Failed to upload file: ' + error.message);
+                        setMessages(prev => [...prev, { 
+                          sender: 'bot', 
+                          text: 'Sorry, there was an error uploading the file. Please try again.', 
+                          time: new Date(),
+                          type: 'text'
+                        }]);
+                      } finally {
+                        setUploadingFile(false);
+                      }
+                    }}
+                    disabled={!pendingAttachment || !pendingAttachment.file || uploadingFile}
+                  >
+                    {uploadingFile ? (
+                      <>
+                        <Spinner as="span" animation="border" size="sm" className="me-2" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <IconifyIcon icon="ri:upload-cloud-2-line" className="me-2" />
+                        Upload & Create Assignment
+                      </>
+                    )}
+                  </Button>
+                  
+                  <Button
+                    variant="outline-secondary"
+                    onClick={() => {
+                      setPendingAttachment(null);
+                      setMessages(prev => [...prev, { 
+                        sender: 'bot', 
+                        text: 'Assignment creation cancelled. Let me know if you need help with anything else!', 
+                        time: new Date(),
+                        type: 'text'
+                      }]);
+                    }}
+                    disabled={uploadingFile}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+
+            {response.conversationId && (
+              <div className="mt-2 small text-muted">
+                Conversation ID: {response.conversationId}
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      // Custom: Handle file attachment request via ongoingAction (OLD FORMAT)
       if (response.ongoingAction && 
           response.ongoingAction.action === 'CREATE_ASSIGNMENT' && 
           response.ongoingAction.collectedParameters &&
