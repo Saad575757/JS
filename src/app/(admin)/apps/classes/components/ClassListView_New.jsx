@@ -4,12 +4,14 @@ import {
   Button, Modal, Form, Row, Col,
   Alert, Dropdown, Badge, Spinner
 } from 'react-bootstrap';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { createCourse, deleteCourse } from '@/lib/api/courses';
+import { getUserRole } from '@/lib/auth/tokenManager';
 
 export default function ClassListView({ classes, refreshClasses, loading, error: parentError, onClassClick }) {
   const [showForm, setShowForm] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     section: '',
@@ -19,6 +21,12 @@ export default function ClassListView({ classes, refreshClasses, loading, error:
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Check user role
+    const userRole = getUserRole();
+    setIsTeacher(userRole === 'teacher');
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -139,29 +147,31 @@ export default function ClassListView({ classes, refreshClasses, loading, error:
                     <IconifyIcon icon="ri:book-open-line" className="me-2" style={{ fontSize: '1.5rem' }} />
                     <span className="fw-bold">{course.name}</span>
                   </div>
-                  <Dropdown onClick={(e) => e.stopPropagation()}>
-                    <Dropdown.Toggle
-                      variant="link"
-                      className="text-white p-0 shadow-none"
-                      style={{ fontSize: '1.5rem' }}
-                    >
-                      <IconifyIcon icon="ri:more-2-fill" />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => copyClassLink(course.id)}>
-                        <IconifyIcon icon="ri:link" className="me-2" />
-                        Copy Link
-                      </Dropdown.Item>
-                      <Dropdown.Divider />
-                      <Dropdown.Item 
-                        className="text-danger"
-                        onClick={() => handleDeleteCourse(course.id)}
+                  {isTeacher && (
+                    <Dropdown onClick={(e) => e.stopPropagation()}>
+                      <Dropdown.Toggle
+                        variant="link"
+                        className="text-white p-0 shadow-none"
+                        style={{ fontSize: '1.5rem' }}
                       >
-                        <IconifyIcon icon="ri:delete-bin-line" className="me-2" />
-                        Delete
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
+                        <IconifyIcon icon="ri:more-2-fill" />
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => copyClassLink(course.id)}>
+                          <IconifyIcon icon="ri:link" className="me-2" />
+                          Copy Link
+                        </Dropdown.Item>
+                        <Dropdown.Divider />
+                        <Dropdown.Item 
+                          className="text-danger"
+                          onClick={() => handleDeleteCourse(course.id)}
+                        >
+                          <IconifyIcon icon="ri:delete-bin-line" className="me-2" />
+                          Delete
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  )}
                 </CardHeader>
                 <CardBody>
                   <p className="text-muted mb-3" style={{ minHeight: '60px' }}>
@@ -203,7 +213,7 @@ export default function ClassListView({ classes, refreshClasses, loading, error:
       )}
 
       {/* Floating Action Button */}
-      {!loading && (
+      {!loading && isTeacher && (
         <Button
           variant="primary"
           aria-label="Add Course"

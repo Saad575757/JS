@@ -11,6 +11,7 @@ import {
   getAssignmentsByCourse, createAssignment, deleteAssignment,
   getAnnouncementsByCourse, createAnnouncement, deleteAnnouncement
 } from '@/lib/api/courses';
+import { getUserRole } from '@/lib/auth/tokenManager';
 
 export default function ClassDetailView_New({ classId, onBack }) {
   // State management
@@ -67,8 +68,8 @@ export default function ClassDetailView_New({ classId, onBack }) {
   };
 
   useEffect(() => {
-    // Check user role
-    const userRole = localStorage.getItem('role');
+    // Check user role using the getUserRole utility
+    const userRole = getUserRole();
     setIsTeacher(userRole === 'teacher');
     
     if (classId) {
