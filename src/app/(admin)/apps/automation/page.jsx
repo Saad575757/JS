@@ -173,7 +173,7 @@ export default function AutomationPage() {
 
   return (
     <>
-      <PageTitle title="Automation" />
+      <PageTitle title="Workflow Automation" />
       <Container fluid>
         {error && (
           <Alert variant="danger" dismissible onClose={() => setError(null)}>
@@ -192,7 +192,7 @@ export default function AutomationPage() {
               <div className="d-flex justify-content-between align-items-center">
                 <CardTitle className="mb-0">
                   <IconifyIcon icon="ri:robot-2-line" className="me-2" />
-                  Email Automation
+                  Workflow Automation
                 </CardTitle>
                 <div className="d-flex gap-2">
                   <Button

@@ -27,8 +27,9 @@ export const MENU_ITEMS = [{
 {
   key: 'apps-automation',
   icon: 'ri:robot-2-line',
-  label: 'Email Automation',
-  url: '/apps/automation'
+  label: 'Workflow Automation',
+  url: '/apps/automation',
+  requiredRole: 'teacher' // Only teachers can see this
 }, 
 // {
 //   key: 'apps-invoices',

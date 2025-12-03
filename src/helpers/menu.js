@@ -1,6 +1,20 @@
 import { MENU_ITEMS } from '@/assets/data/menu-items';
+import { getUserRole } from '@/lib/auth/tokenManager';
+
 export const getMenuItems = () => {
-  return MENU_ITEMS;
+  const userRole = getUserRole();
+  
+  // Filter menu items based on user role
+  const filteredItems = MENU_ITEMS.filter(item => {
+    // If item has requiredRole, check if user has that role
+    if (item.requiredRole) {
+      return userRole === item.requiredRole;
+    }
+    // If no requiredRole specified, show to everyone
+    return true;
+  });
+  
+  return filteredItems;
 };
 export const findAllParent = (menuItems, menuItem) => {
   let parents = [];
