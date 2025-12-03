@@ -273,6 +273,8 @@ export default function ChatInput() {
   const [recognitionLang, setRecognitionLang] = useState('en-US'); // New: language for speech recognition
   const [userNames, setUserNames] = useState({}); // userId -> name
   const [role, setRole] = useState(null);
+  const [pendingAttachment, setPendingAttachment] = useState(null); // {assignmentData, file}
+  const [uploadingFile, setUploadingFile] = useState(false);
   // Derived flag: detect Super Admin in several possible formats
   const isSuperAdmin = !!(role && role.toString().toLowerCase().replace(/[_-\s]/g, '') === 'superadmin');
   const mediaRecorderRef = useRef(null);
@@ -889,6 +891,192 @@ if (response.announcements && Array.isArray(response.announcements) && response.
 // Custom: Render assignment creation details
 if (response.assignment && typeof response.assignment === 'object') {
   const a = response.assignment;
+  
+  // Check if assignment has pending attachment
+  if (a.hasAttachment && a.attachmentUrl === 'pending') {
+    return (
+      <div>
+        <div className="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <Badge bg="warning" className="me-2">Attachment Required</Badge>
+            <strong>{a.title}</strong>
+          </div>
+          <Button
+            variant="link"
+            size="sm"
+            onClick={() => toggleSpeech(response.message)}
+            className="p-0 ms-2"
+            title={isSpeaking ? 'Stop speech' : 'Read aloud'}
+          >
+            <IconifyIcon
+              icon={isSpeaking ? 'mdi:volume-high' : 'mdi:volume-off'}
+              width={16}
+            />
+          </Button>
+        </div>
+
+        <Card className="mb-3 shadow-sm border-warning">
+          <Card.Body>
+            <Alert variant="info" className="mb-3">
+              <IconifyIcon icon="ri:information-line" className="me-2" />
+              Please upload a file to attach to this assignment.
+            </Alert>
+            
+            <div className="mb-3">
+              <strong>Assignment Details:</strong>
+              <ul className="mt-2">
+                <li><strong>Course:</strong> {a.courseName || 'N/A'}</li>
+                <li><strong>Title:</strong> {a.title}</li>
+                <li><strong>Description:</strong> {a.description || 'N/A'}</li>
+                <li><strong>Due Date:</strong> {a.dueDate ? new Date(a.dueDate).toLocaleString() : 'N/A'}</li>
+                <li><strong>Max Points:</strong> {a.maxPoints || 100}</li>
+              </ul>
+            </div>
+
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold">
+                <IconifyIcon icon="ri:attachment-2" className="me-2" />
+                Select File to Attach
+              </Form.Label>
+              <Form.Control
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPendingAttachment({ assignmentData: a, file });
+                  }
+                }}
+                disabled={uploadingFile}
+              />
+              <Form.Text className="text-muted">
+                Supported formats: PDF, Word, Excel, PowerPoint, Images, Text files (Max 50MB)
+              </Form.Text>
+            </Form.Group>
+
+            {pendingAttachment && pendingAttachment.file && (
+              <div className="mb-3">
+                <Alert variant="success">
+                  <IconifyIcon icon="ri:file-check-line" className="me-2" />
+                  <strong>File selected:</strong> {pendingAttachment.file.name} 
+                  ({(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB)
+                </Alert>
+              </div>
+            )}
+
+            <div className="d-flex gap-2">
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  if (!pendingAttachment || !pendingAttachment.file) {
+                    alert('Please select a file first');
+                    return;
+                  }
+                  
+                  setUploadingFile(true);
+                  try {
+                    // Create FormData for file upload
+                    const formData = new FormData();
+                    formData.append('file', pendingAttachment.file);
+                    
+                    // Upload file to your backend
+                    const token = getToken();
+                    const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': token ? `Bearer ${token}` : ''
+                      },
+                      body: formData
+                    });
+                    
+                    if (!uploadRes.ok) throw new Error('File upload failed');
+                    
+                    const uploadData = await uploadRes.json();
+                    const fileUrl = uploadData.url || uploadData.fileUrl;
+                    
+                    // Now send assignment creation with file URL
+                    const assignmentPayload = {
+                      ...pendingAttachment.assignmentData,
+                      hasAttachment: true,
+                      attachmentUrl: fileUrl
+                    };
+                    
+                    // Send to backend to create assignment
+                    const createRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/assignments`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify(assignmentPayload)
+                    });
+                    
+                    if (!createRes.ok) throw new Error('Assignment creation failed');
+                    
+                    const result = await createRes.json();
+                    
+                    // Show success message
+                    setMessages(prev => [...prev, { 
+                      sender: 'bot', 
+                      text: `✅ Assignment "${a.title}" created successfully with attachment!`, 
+                      time: new Date(),
+                      type: 'text'
+                    }]);
+                    
+                    // Clear pending attachment
+                    setPendingAttachment(null);
+                    
+                  } catch (error) {
+                    console.error('Error uploading file or creating assignment:', error);
+                    alert('Failed to upload file or create assignment: ' + error.message);
+                  } finally {
+                    setUploadingFile(false);
+                  }
+                }}
+                disabled={!pendingAttachment || !pendingAttachment.file || uploadingFile}
+              >
+                {uploadingFile ? (
+                  <>
+                    <Spinner as="span" animation="border" size="sm" className="me-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <IconifyIcon icon="ri:upload-cloud-2-line" className="me-2" />
+                    Upload & Create Assignment
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  setPendingAttachment(null);
+                  setMessages(prev => [...prev, { 
+                    sender: 'bot', 
+                    text: 'Assignment creation cancelled. Let me know if you need help with anything else!', 
+                    time: new Date(),
+                    type: 'text'
+                  }]);
+                }}
+                disabled={uploadingFile}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
+
+        {response.conversationId && (
+          <div className="mt-2 small text-muted">
+            Conversation ID: {response.conversationId}
+          </div>
+        )}
+      </div>
+    );
+  }
+  
+  // Regular assignment display (already created)
   return (
     <div>
       <div className="d-flex justify-content-between align-items-start mb-2">
@@ -928,6 +1116,20 @@ if (response.assignment && typeof response.assignment === 'object') {
             <ListGroup.Item>
               <strong>Last Updated:</strong> {new Date(a.updateTime).toLocaleString()}
             </ListGroup.Item>
+            {a.hasAttachment && a.attachmentUrl && a.attachmentUrl !== 'pending' && (
+              <ListGroup.Item>
+                <strong>Attachment:</strong>{" "}
+                <a
+                  href={a.attachmentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary"
+                >
+                  <IconifyIcon icon="ri:attachment-2" className="me-1" />
+                  View Attached File
+                </a>
+              </ListGroup.Item>
+            )}
             {a.assignment?.studentWorkFolder?.id && (
               <ListGroup.Item>
                 <strong>Student Work Folder:</strong>{" "}
