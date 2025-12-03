@@ -1,28 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Container, Card, CardBody, Spinner, Alert } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 
-export default function AcceptInvitationPage() {
+export default function AcceptInvitationPage({ params }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = params.token;
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setError('Invalid invitation link. No token provided.');
-      setLoading(false);
-      return;
-    }
+    // Check if user is logged in
+    const checkAuthAndAccept = async () => {
+      const userToken = localStorage.getItem('token');
+      
+      if (!userToken) {
+        // Not logged in - redirect to login with returnTo parameter
+        const returnUrl = `/accept-invitation/${token}`;
+        router.push(`/login?returnTo=${encodeURIComponent(returnUrl)}`);
+        return;
+      }
 
-    acceptInvitation();
-  }, [token]);
+      // User is logged in, proceed with accepting invitation
+      if (!token) {
+        setError('Invalid invitation link. No token provided.');
+        setLoading(false);
+        return;
+      }
+
+      await acceptInvitation();
+    };
+
+    checkAuthAndAccept();
+  }, [token, router]);
 
   const acceptInvitation = async () => {
     try {
@@ -34,6 +48,7 @@ export default function AcceptInvitationPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ token }),
       });

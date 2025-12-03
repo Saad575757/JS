@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -15,8 +15,18 @@ import { saveAuthData } from '@/lib/auth/tokenManager';
 
 const LoginForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [returnTo, setReturnTo] = useState(null);
+
+  useEffect(() => {
+    // Get returnTo parameter from URL
+    const returnUrl = searchParams.get('returnTo');
+    if (returnUrl) {
+      setReturnTo(returnUrl);
+    }
+  }, [searchParams]);
 
   const loginSchema = yup.object({
     email: yup.string().email('Please enter a valid email').required('Email is required'),
@@ -52,8 +62,12 @@ const LoginForm = () => {
         // Show success message
         console.log('Login successful:', response.user);
 
-        // Redirect to dashboard after successful login
-        router.push('/dashboard');
+        // Redirect to returnTo URL if present, otherwise dashboard
+        if (returnTo) {
+          router.push(returnTo);
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         setError(response.message || 'Login failed. Please try again.');
       }
@@ -67,6 +81,16 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="text-start">
+      {returnTo && returnTo.includes('accept-invitation') && (
+        <Alert variant="info" className="mb-3">
+          <IconifyIcon icon="ri:information-line" className="me-2" />
+          <strong>Join Class</strong>
+          <p className="mb-0 mt-1 small">
+            Please log in to accept the class invitation.
+          </p>
+        </Alert>
+      )}
+      
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError(null)}>
           {error}

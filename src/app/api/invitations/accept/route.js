@@ -11,46 +11,78 @@ export async function POST(request) {
       );
     }
 
+    // Get authorization header
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const userToken = authHeader.replace('Bearer ', '');
+
     // TODO: Replace this with your actual database logic
-    // This is a placeholder - you'll need to:
-    // 1. Verify the token in your database
-    // 2. Get the invitation details (classId, userId, etc.)
-    // 3. Add the user to the class
-    // 4. Mark the invitation as accepted
-    // 5. Return the appropriate data
-
-    // For now, return a mock response
-    // You should replace this with actual database queries
-    console.log('Accepting invitation with token:', token);
-
-    // Example: Verify token and get invitation details
-    // const invitation = await db.invitations.findOne({ token, status: 'pending' });
+    // Example implementation:
+    // 
+    // 1. Verify the invitation token exists and is valid
+    // const invitation = await db.query(
+    //   'SELECT * FROM invitations WHERE token = ? AND status = ?',
+    //   [token, 'pending']
+    // );
+    // 
     // if (!invitation) {
     //   return NextResponse.json(
     //     { message: 'Invalid or expired invitation' },
     //     { status: 404 }
     //   );
     // }
-
-    // Example: Add user to class
-    // await db.classMembers.create({
-    //   classId: invitation.classId,
-    //   userId: invitation.userId,
-    //   role: 'student'
-    // });
-
-    // Example: Mark invitation as accepted
-    // await db.invitations.update(
-    //   { token },
-    //   { status: 'accepted', acceptedAt: new Date() }
+    //
+    // 2. Get user ID from auth token
+    // const decoded = jwt.verify(userToken, process.env.JWT_SECRET);
+    // const userId = decoded.userId;
+    //
+    // 3. Check if user is already enrolled
+    // const existing = await db.query(
+    //   'SELECT * FROM course_enrollments WHERE course_id = ? AND user_id = ?',
+    //   [invitation.courseId, userId]
+    // );
+    //
+    // if (existing) {
+    //   return NextResponse.json(
+    //     { message: 'You are already enrolled in this course' },
+    //     { status: 400 }
+    //   );
+    // }
+    //
+    // 4. Enroll the user in the course
+    // await db.query(
+    //   'INSERT INTO course_enrollments (course_id, user_id, role, enrolled_at) VALUES (?, ?, ?, NOW())',
+    //   [invitation.courseId, userId, 'student']
+    // );
+    //
+    // 5. Mark invitation as accepted
+    // await db.query(
+    //   'UPDATE invitations SET status = ?, accepted_at = NOW(), accepted_by = ? WHERE token = ?',
+    //   ['accepted', userId, token]
+    // );
+    //
+    // 6. Get course details for redirect
+    // const course = await db.query(
+    //   'SELECT * FROM courses WHERE id = ?',
+    //   [invitation.courseId]
     // );
 
-    // Return success with redirect information
+    console.log('Accepting invitation with token:', token);
+    console.log('User token:', userToken);
+
+    // Mock response - replace with actual database implementation
     return NextResponse.json({
       success: true,
-      message: 'Invitation accepted successfully',
-      classId: 'example-class-id', // Replace with actual classId
-      redirectTo: '/apps/classes' // Or specific class page
+      message: 'Invitation accepted successfully! You have been enrolled in the course.',
+      classId: 'example-class-id', // Replace with actual classId from database
+      redirectTo: '/apps/classes', // Or specific class: `/apps/classes/${classId}`
+      enrolled: true
     });
 
   } catch (error) {
