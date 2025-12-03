@@ -49,6 +49,7 @@ import {
   ProgressBar
 } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
+import FormattedMessage from '@/components/FormattedMessage';
 import './chat-responsive.css';
 import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
 import { getToken } from '@/lib/auth/tokenManager';
@@ -600,13 +601,15 @@ const handleSubmit = async (e) => {
     // Show any {message: ...} response from backend as a bot message (no input field)
     if (msg.data && typeof msg.data === 'object' && msg.data.message && !msg.data.response) {
       return (
-        <div className="d-flex justify-content-between align-items-start">
-          <div>{removeAsterisks(msg.data.message)}</div>
+        <div className="d-flex justify-content-between align-items-start w-100">
+          <div className="flex-grow-1">
+            <FormattedMessage text={removeAsterisks(msg.data.message)} />
+          </div>
           <Button 
             variant="link" 
             size="sm" 
             onClick={() => toggleSpeech(msg.data.message)}
-            className="p-0 ms-2"
+            className="p-0 ms-2 flex-shrink-0"
             title={isSpeaking ? 'Stop speech' : 'Read aloud'}
           >
             <IconifyIcon 
@@ -619,13 +622,15 @@ const handleSubmit = async (e) => {
     }
     if (msg.type === 'text' || !msg.type) {
       return (
-        <div className="d-flex justify-content-between align-items-start">
-          <div>{removeAsterisks(msg.text)}</div>
+        <div className="d-flex justify-content-between align-items-start w-100">
+          <div className="flex-grow-1">
+            <FormattedMessage text={removeAsterisks(msg.text)} />
+          </div>
           <Button 
             variant="link" 
             size="sm" 
             onClick={() => toggleSpeech(msg.text)}
-            className="p-0 ms-2"
+            className="p-0 ms-2 flex-shrink-0"
             title={isSpeaking ? 'Stop speech' : 'Read aloud'}
           >
             <IconifyIcon 

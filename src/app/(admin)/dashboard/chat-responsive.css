@@ -28,6 +28,49 @@
 .chat-message-nextsteps {
   align-self: flex-start;
 }
+
+/* Formatted message styles */
+.formatted-message {
+  line-height: 1.6;
+}
+
+.formatted-message p {
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+.formatted-message p:last-child {
+  margin-bottom: 0;
+}
+
+.formatted-message h4,
+.formatted-message h5,
+.formatted-message h6 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.formatted-message ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.formatted-message li {
+  margin-bottom: 0.25rem;
+}
+
+.formatted-message strong {
+  font-weight: 600;
+  color: inherit;
+}
+
+/* Emoji spacing */
+.formatted-message span {
+  word-spacing: normal;
+}
+
 @media (max-width: 768px) {
   .chat-responsive-body {
     height: 60vh;
@@ -42,6 +85,9 @@
   .chat-messages-container {
     padding: 0.5rem;
   }
+  .formatted-message ul {
+    padding-left: 1.25rem;
+  }
 }
 @media (max-width: 480px) {
   .chat-responsive-body {
@@ -51,5 +97,8 @@
   .chat-message-bubble {
     font-size: 0.9rem;
     padding: 0.5rem;
+  }
+  .formatted-message ul {
+    padding-left: 1rem;
   }
 }

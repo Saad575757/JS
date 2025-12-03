@@ -34,8 +34,8 @@ export default function RoleDebugPage() {
           <Alert variant="warning">
             <h6>What should happen:</h6>
             <ul>
-              <li>If <code>fromGetUserRole</code> is <strong>"student"</strong>, you should NOT see create/delete buttons</li>
-              <li>If <code>fromGetUserRole</code> is <strong>"teacher"</strong>, you SHOULD see all buttons</li>
+              <li>If <code>fromGetUserRole</code> is <strong>&quot;student&quot;</strong>, you should NOT see create/delete buttons</li>
+              <li>If <code>fromGetUserRole</code> is <strong>&quot;teacher&quot;</strong>, you SHOULD see all buttons</li>
             </ul>
           </Alert>
         </CardBody>
