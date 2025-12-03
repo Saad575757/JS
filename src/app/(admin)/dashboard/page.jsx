@@ -670,6 +670,15 @@ const handleSubmit = async (e) => {
     if (msg.type === 'structured' && msg.data) {
       const response = msg.data;
       
+      // Debug logging for attachment detection
+      if (response.ongoingAction && response.ongoingAction.action === 'CREATE_ASSIGNMENT') {
+        console.log('[ATTACHMENT DEBUG] ongoingAction detected:', {
+          action: response.ongoingAction.action,
+          collectedParameters: response.ongoingAction.collectedParameters,
+          hasAttachment: response.ongoingAction.collectedParameters?.hasAttachment
+        });
+      }
+      
       // Custom: Handle file attachment request via ongoingAction
       if (response.ongoingAction && 
           response.ongoingAction.action === 'CREATE_ASSIGNMENT' && 
