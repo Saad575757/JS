@@ -22,6 +22,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState('stream');
+  const [isTeacher, setIsTeacher] = useState(false);
 
   // Modals state
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
@@ -66,6 +67,10 @@ export default function ClassDetailView_New({ classId, onBack }) {
   };
 
   useEffect(() => {
+    // Check user role
+    const userRole = localStorage.getItem('role');
+    setIsTeacher(userRole === 'teacher');
+    
     if (classId) {
       loadClassData();
     }
@@ -256,10 +261,12 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <IconifyIcon icon="ri:megaphone-line" className="me-2" />
                         Announcements
                       </h4>
-                      <Button variant="primary" onClick={() => setShowAnnouncementModal(true)}>
-                        <IconifyIcon icon="ri:add-line" className="me-2" />
-                        Post Announcement
-                      </Button>
+                      {isTeacher && (
+                        <Button variant="primary" onClick={() => setShowAnnouncementModal(true)}>
+                          <IconifyIcon icon="ri:add-line" className="me-2" />
+                          Post Announcement
+                        </Button>
+                      )}
                     </div>
 
                     {announcements.length === 0 ? (
@@ -267,11 +274,17 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <CardBody>
                           <IconifyIcon icon="ri:megaphone-line" style={{ fontSize: '4rem', color: '#dee2e6' }} />
                           <h5 className="mt-3 text-muted">No announcements yet</h5>
-                          <p className="text-muted">Create your first announcement to keep students informed</p>
-                          <Button variant="primary" onClick={() => setShowAnnouncementModal(true)}>
-                            <IconifyIcon icon="ri:add-line" className="me-2" />
-                            Create Announcement
-                          </Button>
+                          <p className="text-muted">
+                            {isTeacher 
+                              ? 'Create your first announcement to keep students informed' 
+                              : 'Your teacher hasn\'t posted any announcements yet'}
+                          </p>
+                          {isTeacher && (
+                            <Button variant="primary" onClick={() => setShowAnnouncementModal(true)}>
+                              <IconifyIcon icon="ri:add-line" className="me-2" />
+                              Create Announcement
+                            </Button>
+                          )}
                         </CardBody>
                       </Card>
                     ) : (
@@ -291,13 +304,15 @@ export default function ClassDetailView_New({ classId, onBack }) {
                                   </small>
                                 </div>
                               </div>
-                              <Button 
-                                variant="link" 
-                                className="text-danger p-0"
-                                onClick={() => handleDeleteAnnouncement(announcement.id)}
-                              >
-                                <IconifyIcon icon="ri:delete-bin-line" />
-                              </Button>
+                              {isTeacher && (
+                                <Button 
+                                  variant="link" 
+                                  className="text-danger p-0"
+                                  onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                >
+                                  <IconifyIcon icon="ri:delete-bin-line" />
+                                </Button>
+                              )}
                             </div>
                             <h5>{announcement.title}</h5>
                             <p className="mb-0">{announcement.content}</p>
@@ -341,10 +356,12 @@ export default function ClassDetailView_New({ classId, onBack }) {
                     <IconifyIcon icon="ri:file-list-3-line" className="me-2" />
                     Assignments
                   </h4>
-                  <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
-                    <IconifyIcon icon="ri:add-line" className="me-2" />
-                    Create Assignment
-                  </Button>
+                  {isTeacher && (
+                    <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
+                      <IconifyIcon icon="ri:add-line" className="me-2" />
+                      Create Assignment
+                    </Button>
+                  )}
                 </div>
 
                 {assignments.length === 0 ? (
@@ -352,11 +369,17 @@ export default function ClassDetailView_New({ classId, onBack }) {
                     <CardBody>
                       <IconifyIcon icon="ri:file-list-3-line" style={{ fontSize: '4rem', color: '#dee2e6' }} />
                       <h5 className="mt-3 text-muted">No assignments yet</h5>
-                      <p className="text-muted">Create your first assignment for students</p>
-                      <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
-                        <IconifyIcon icon="ri:add-line" className="me-2" />
-                        Create Assignment
-                      </Button>
+                      <p className="text-muted">
+                        {isTeacher 
+                          ? 'Create your first assignment for students' 
+                          : 'Your teacher hasn\'t posted any assignments yet'}
+                      </p>
+                      {isTeacher && (
+                        <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
+                          <IconifyIcon icon="ri:add-line" className="me-2" />
+                          Create Assignment
+                        </Button>
+                      )}
                     </CardBody>
                   </Card>
                 ) : (
@@ -367,7 +390,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <th>Due Date</th>
                         <th>Max Points</th>
                         <th>Teacher</th>
-                        <th>Actions</th>
+                        {isTeacher && <th>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -382,15 +405,17 @@ export default function ClassDetailView_New({ classId, onBack }) {
                             <Badge bg="primary">{assignment.max_points}</Badge>
                           </td>
                           <td>{assignment.teacher_name}</td>
-                          <td>
-                            <Button 
-                              variant="link" 
-                              className="text-danger p-0"
-                              onClick={() => handleDeleteAssignment(assignment.id)}
-                            >
-                              <IconifyIcon icon="ri:delete-bin-line" />
-                            </Button>
-                          </td>
+                          {isTeacher && (
+                            <td>
+                              <Button 
+                                variant="link" 
+                                className="text-danger p-0"
+                                onClick={() => handleDeleteAssignment(assignment.id)}
+                              >
+                                <IconifyIcon icon="ri:delete-bin-line" />
+                              </Button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
