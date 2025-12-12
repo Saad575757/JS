@@ -24,6 +24,27 @@ const apiCall = async (endpoint, options = {}) => {
   return response.json();
 };
 
+// Helper function for file uploads (no Content-Type header - browser sets it with boundary)
+const apiUpload = async (endpoint, formData) => {
+  const token = getToken();
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+  };
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 // ==================== COURSES ====================
 
 export const getCourses = async () => {
@@ -124,5 +145,28 @@ export const deleteAnnouncement = async (announcementId) => {
   return apiCall(`/api/announcements/${announcementId}`, {
     method: 'DELETE',
   });
+};
+
+// ==================== FILE UPLOADS ====================
+
+/**
+ * Upload a file to the server
+ * @param {File} file - The file to upload
+ * @returns {Promise<Object>} Upload response with file details
+ * Response format:
+ * {
+ *   "success": true,
+ *   "file": {
+ *     "originalName": "homework.pdf",
+ *     "filename": "homework-1702412345-123456789.pdf",
+ *     "url": "/uploads/assignments/homework-1702412345-123456789.pdf",
+ *     "fullUrl": "https://yourserver.com/uploads/assignments/homework-1702412345-123456789.pdf"
+ *   }
+ * }
+ */
+export const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiUpload('/api/upload', formData);
 };
 

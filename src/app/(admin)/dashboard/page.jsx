@@ -51,6 +51,7 @@ import {
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import FormattedMessage from '@/components/FormattedMessage';
 import './chat-responsive.css';
+import { uploadFile, createAssignment } from '@/lib/api/courses';
 import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
 import { getToken } from '@/lib/auth/tokenManager';
 // Prompt Suggestions Component (defined in the same file)
@@ -693,27 +694,36 @@ const handleSubmit = async (e) => {
                     
                     setUploadingFile(true);
                     try {
-                      // Create FormData for file upload
-                      const formData = new FormData();
-                      formData.append('file', pendingAttachment.file);
+                      console.log('[UPLOAD START] Uploading file:', pendingAttachment.file.name);
                       
-                      // Upload file to your backend
+                      // 1. Upload file using API utility
+                      const uploadResponse = await uploadFile(pendingAttachment.file);
+                      console.log('[UPLOAD SUCCESS] Response:', uploadResponse);
+                      
+                      // Extract file info from response
+                      // Response format: { success: true, file: { originalName, filename, url, fullUrl } }
+                      const fileInfo = uploadResponse.file || uploadResponse;
+                      const fileUrl = fileInfo.fullUrl || fileInfo.url;
+                      
+                      if (!fileUrl) {
+                        throw new Error('No file URL in upload response');
+                      }
+                      
+                      console.log('[FILE URL]', fileUrl);
+                      
+                      // 2. Prepare attachment data for assignment creation
+                      const attachmentData = {
+                        originalName: fileInfo.originalName || pendingAttachment.file.name,
+                        filename: fileInfo.filename || fileInfo.originalName,
+                        url: fileInfo.url || fileUrl
+                      };
+                      
+                      console.log('[ATTACHMENT DATA]', attachmentData);
+                      
+                      // 3. Tell AI that file is uploaded and ready
                       const token = getToken();
-                      const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/upload`, {
-                        method: 'POST',
-                        headers: {
-                          'Authorization': token ? `Bearer ${token}` : ''
-                        },
-                        body: formData
-                      });
+                      const fileMessage = `yes`;  // Respond "yes" to the attachment question
                       
-                      if (!uploadRes.ok) throw new Error('File upload failed');
-                      
-                      const uploadData = await uploadRes.json();
-                      const fileUrl = uploadData.url || uploadData.fileUrl;
-                      
-                      // Tell AI we have the file URL via chat message
-                      const fileMessage = `File uploaded: ${fileUrl}`;
                       setMessage('');
                       setMessages(prev => [...prev, { 
                         sender: 'user', 
@@ -721,7 +731,7 @@ const handleSubmit = async (e) => {
                         time: new Date() 
                       }]);
                       
-                      // Send message to AI with file URL
+                      // 4. Send confirmation to AI with attachment info
                       const aiRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
                         method: 'POST',
                         headers: {
@@ -731,15 +741,20 @@ const handleSubmit = async (e) => {
                         body: JSON.stringify({
                           message: fileMessage,
                           conversationId: pendingAttachment.conversationId || conversationId,
-                          fileUrl: fileUrl
+                          attachmentUrl: fileUrl,
+                          attachmentData: attachmentData
                         })
                       });
                       
-                      if (!aiRes.ok) throw new Error('AI request failed');
+                      if (!aiRes.ok) {
+                        const errorData = await aiRes.json().catch(() => ({}));
+                        throw new Error(errorData.message || 'AI request failed');
+                      }
                       
                       const aiData = await aiRes.json();
+                      console.log('[AI RESPONSE]', aiData);
                       
-                      // Add bot response
+                      // 5. Add bot response
                       const botResponse = {
                         sender: 'bot',
                         data: aiData,
@@ -748,20 +763,22 @@ const handleSubmit = async (e) => {
                       };
                       setMessages(prev => [...prev, botResponse]);
                       
-                      // Clear pending attachment
+                      // 6. Clear pending attachment
                       setPendingAttachment(null);
                       
-                      // Show success message
+                      // 7. Show success message
                       if (aiData.message) {
                         speak(aiData.message);
                       }
                       
+                      console.log('[UPLOAD COMPLETE] Assignment created successfully!');
+                      
                     } catch (error) {
-                      console.error('Error uploading file:', error);
+                      console.error('[UPLOAD ERROR]', error);
                       alert('Failed to upload file: ' + error.message);
                       setMessages(prev => [...prev, { 
                         sender: 'bot', 
-                        text: 'Sorry, there was an error uploading the file. Please try again.', 
+                        text: `Sorry, there was an error uploading the file: ${error.message}. Please try again.`, 
                         time: new Date(),
                         type: 'text'
                       }]);
