@@ -31,18 +31,49 @@ const apiUpload = async (endpoint, formData) => {
     'Authorization': `Bearer ${token}`,
   };
 
+  console.log('[API UPLOAD] Sending to:', `${API_BASE_URL}${endpoint}`);
+  console.log('[API UPLOAD] Has token:', !!token);
+
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: 'POST',
     headers,
     body: formData,
   });
 
+  console.log('[API UPLOAD] Response status:', response.status, response.statusText);
+  console.log('[API UPLOAD] Response headers:', Object.fromEntries(response.headers.entries()));
+
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+    const errorText = await response.text();
+    console.error('[API UPLOAD] Error response text:', errorText);
+    
+    let error;
+    try {
+      error = JSON.parse(errorText);
+    } catch {
+      error = { message: errorText || 'Upload failed' };
+    }
+    
     throw new Error(error.message || `HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  const responseText = await response.text();
+  console.log('[API UPLOAD] Response text:', responseText);
+  
+  if (!responseText || responseText.trim() === '') {
+    console.warn('[API UPLOAD] Empty response from server');
+    throw new Error('Server returned empty response');
+  }
+  
+  try {
+    const data = JSON.parse(responseText);
+    console.log('[API UPLOAD] Parsed data:', data);
+    return data;
+  } catch (parseError) {
+    console.error('[API UPLOAD] Failed to parse JSON:', parseError);
+    console.error('[API UPLOAD] Response was:', responseText);
+    throw new Error('Invalid JSON response from server');
+  }
 };
 
 // ==================== COURSES ====================

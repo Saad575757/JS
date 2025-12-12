@@ -695,18 +695,40 @@ const handleSubmit = async (e) => {
                     setUploadingFile(true);
                     try {
                       console.log('[UPLOAD START] Uploading file:', pendingAttachment.file.name);
+                      console.log('[UPLOAD START] File size:', pendingAttachment.file.size, 'bytes');
+                      console.log('[UPLOAD START] File type:', pendingAttachment.file.type);
                       
                       // 1. Upload file using API utility
-                      const uploadResponse = await uploadFile(pendingAttachment.file);
-                      console.log('[UPLOAD SUCCESS] Response:', uploadResponse);
+                      let uploadResponse;
+                      try {
+                        uploadResponse = await uploadFile(pendingAttachment.file);
+                        console.log('[UPLOAD SUCCESS] Full response:', JSON.stringify(uploadResponse, null, 2));
+                      } catch (uploadError) {
+                        console.error('[UPLOAD FAILED]', uploadError);
+                        throw new Error(`File upload failed: ${uploadError.message}`);
+                      }
+                      
+                      // Check if we got a valid response
+                      if (!uploadResponse) {
+                        console.error('[UPLOAD FAILED] Response is undefined or null');
+                        throw new Error('Upload returned no data. Please check your backend /api/upload endpoint.');
+                      }
                       
                       // Extract file info from response
                       // Response format: { success: true, file: { originalName, filename, url, fullUrl } }
                       const fileInfo = uploadResponse.file || uploadResponse;
+                      console.log('[FILE INFO] Extracted:', fileInfo);
+                      
+                      if (!fileInfo) {
+                        console.error('[FILE INFO] No file info in response:', uploadResponse);
+                        throw new Error('No file information in upload response');
+                      }
+                      
                       const fileUrl = fileInfo.fullUrl || fileInfo.url;
                       
                       if (!fileUrl) {
-                        throw new Error('No file URL in upload response');
+                        console.error('[FILE URL] Missing in response. fileInfo:', fileInfo);
+                        throw new Error('No file URL in upload response. Check backend response format.');
                       }
                       
                       console.log('[FILE URL]', fileUrl);
