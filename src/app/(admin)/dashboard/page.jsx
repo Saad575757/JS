@@ -2408,9 +2408,6 @@ if (response.assignment && typeof response.assignment === 'object') {
       
       setConversationId(conversation.id);
       localStorage.setItem('conversationId', conversation.id);
-      
-      // Scroll to bottom after loading
-      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error('[CONVERSATION] Failed to load:', error);
       console.error('[CONVERSATION] Error details:', error.message, error.stack);
