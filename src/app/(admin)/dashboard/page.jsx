@@ -606,7 +606,12 @@ const handleSubmit = async (e) => {
       const response = msg.data;
       const params = response.assignmentData || {};
       
-      console.log('[UPLOAD UI] Rendering file upload UI!', { response, params });
+      console.log('[UPLOAD UI] Rendering file upload UI!', { 
+        response, 
+        params,
+        msgTime: msg.time,
+        awaitingFileUpload: msg.data.awaitingFileUpload 
+      });
       
       return (
         <div>
@@ -754,33 +759,45 @@ const handleSubmit = async (e) => {
                       }]);
                       
                       // 4. Send confirmation to AI with attachment info
+                      const aiRequestBody = {
+                        message: fileMessage,
+                        conversationId: pendingAttachment.conversationId || conversationId,
+                        attachmentUrl: fileUrl,
+                        attachmentData: attachmentData
+                      };
+                      console.log('[AI REQUEST] Sending to AI:', aiRequestBody);
+                      
                       const aiRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/ai/message`, {
                         method: 'POST',
                         headers: {
                           'Authorization': token ? `Bearer ${token}` : '',
                           'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                          message: fileMessage,
-                          conversationId: pendingAttachment.conversationId || conversationId,
-                          attachmentUrl: fileUrl,
-                          attachmentData: attachmentData
-                        })
+                        body: JSON.stringify(aiRequestBody)
                       });
+                      
+                      console.log('[AI REQUEST] Response status:', aiRes.status, aiRes.statusText);
                       
                       if (!aiRes.ok) {
                         const errorData = await aiRes.json().catch(() => ({}));
+                        console.error('[AI REQUEST] Error response:', errorData);
                         throw new Error(errorData.message || 'AI request failed');
                       }
                       
                       const aiData = await aiRes.json();
-                      console.log('[AI RESPONSE]', aiData);
+                      console.log('[AI RESPONSE AFTER UPLOAD]', aiData);
+                      console.log('[AI RESPONSE] Has awaitingFileUpload?', aiData.awaitingFileUpload);
+                      console.log('[AI RESPONSE] Message:', aiData.message);
                       
                       // 5. Clear awaitingFileUpload from ALL previous messages and add new response
+                      console.log('[BEFORE UPDATE] Clearing old upload UI messages...');
                       setMessages(prev => {
+                        console.log('[MESSAGES] Total messages before update:', prev.length);
+                        
                         // Update all previous messages to remove awaitingFileUpload flag
-                        const updatedMessages = prev.map(msg => {
+                        const updatedMessages = prev.map((msg, idx) => {
                           if (msg.data && msg.data.awaitingFileUpload === true) {
+                            console.log(`[MESSAGES] Clearing awaitingFileUpload from message ${idx}`);
                             return {
                               ...msg,
                               data: { ...msg.data, awaitingFileUpload: false }
@@ -798,11 +815,15 @@ const handleSubmit = async (e) => {
                           type: 'structured'
                         };
                         
+                        console.log('[MESSAGES] Adding new success message:', botResponse);
+                        console.log('[MESSAGES] Total messages after update:', updatedMessages.length + 1);
+                        
                         return [...updatedMessages, botResponse];
                       });
                       
                       // 6. Clear pending attachment
                       setPendingAttachment(null);
+                      console.log('[PENDING ATTACHMENT] Cleared');
                       
                       // 7. Show success message
                       if (aiData.message) {
@@ -810,6 +831,7 @@ const handleSubmit = async (e) => {
                       }
                       
                       console.log('[UPLOAD COMPLETE] Assignment created successfully!');
+                      console.log('[UPLOAD COMPLETE] Backend returned awaitingFileUpload:', aiData.awaitingFileUpload);
                       
                     } catch (error) {
                       console.error('[UPLOAD ERROR]', error);
