@@ -90,7 +90,7 @@ export default function MySubmissions() {
         {submissions.length === 0 ? (
           <Alert variant="info">
             <IconifyIcon icon="ri:information-line" className="me-2" />
-            You haven't submitted any assignments yet.
+            You haven&apos;t submitted any assignments yet.
           </Alert>
         ) : (
           <Table responsive hover>
