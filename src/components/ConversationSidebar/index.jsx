@@ -8,7 +8,6 @@ import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import {
   getAllConversations,
   createConversation,
-  renameConversation,
   deleteConversation,
   searchConversations
 } from '@/lib/api/conversations';
@@ -25,10 +24,9 @@ export default function ConversationSidebar({
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [newTitle, setNewTitle] = useState('');
+  const [error, setError] = useState(null);
 
   // Load conversations on mount
   useEffect(() => {
@@ -37,11 +35,27 @@ export default function ConversationSidebar({
 
   const loadConversations = async () => {
     setLoading(true);
+    setError(null);
     try {
+      console.log('[SIDEBAR] Loading all conversations...');
       const data = await getAllConversations();
-      setConversations(data.conversations || data || []);
+      console.log('[SIDEBAR] Conversations loaded:', data);
+      
+      // Handle different response formats
+      let conversationsList = [];
+      if (data.conversations && Array.isArray(data.conversations)) {
+        conversationsList = data.conversations;
+      } else if (Array.isArray(data)) {
+        conversationsList = data;
+      } else if (data.success && data.conversations) {
+        conversationsList = data.conversations;
+      }
+      
+      console.log('[SIDEBAR] Total conversations:', conversationsList.length);
+      setConversations(conversationsList);
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      console.error('[SIDEBAR] Failed to load conversations:', error);
+      setError('Failed to load conversations');
     } finally {
       setLoading(false);
     }
@@ -64,31 +78,17 @@ export default function ConversationSidebar({
 
   const handleNewConversation = async () => {
     try {
+      console.log('[SIDEBAR] Creating new conversation...');
       const newConv = await createConversation({ title: 'New conversation' });
-      setConversations(prev => [newConv.conversation || newConv, ...prev]);
-      onNewConversation?.(newConv.conversation || newConv);
+      console.log('[SIDEBAR] New conversation created:', newConv);
+      
+      const conversation = newConv.conversation || newConv;
+      setConversations(prev => [conversation, ...prev]);
+      onNewConversation?.(conversation);
       if (isMobile) onHide();
     } catch (error) {
-      console.error('Failed to create conversation:', error);
-    }
-  };
-
-  const handleRename = async () => {
-    if (!selectedConversation || !newTitle.trim()) return;
-    
-    try {
-      await renameConversation(selectedConversation.id, newTitle);
-      setConversations(prev => 
-        prev.map(conv => 
-          conv.id === selectedConversation.id 
-            ? { ...conv, title: newTitle }
-            : conv
-        )
-      );
-      setShowRenameModal(false);
-      setNewTitle('');
-    } catch (error) {
-      console.error('Failed to rename conversation:', error);
+      console.error('[SIDEBAR] Failed to create conversation:', error);
+      setError('Failed to create conversation');
     }
   };
 
@@ -96,7 +96,10 @@ export default function ConversationSidebar({
     if (!selectedConversation) return;
     
     try {
+      console.log('[SIDEBAR] Deleting conversation:', selectedConversation.id);
       await deleteConversation(selectedConversation.id);
+      console.log('[SIDEBAR] Conversation deleted successfully');
+      
       setConversations(prev => prev.filter(conv => conv.id !== selectedConversation.id));
       setShowDeleteModal(false);
       
@@ -105,15 +108,9 @@ export default function ConversationSidebar({
         handleNewConversation();
       }
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
+      console.error('[SIDEBAR] Failed to delete conversation:', error);
+      setError('Failed to delete conversation');
     }
-  };
-
-  const openRenameModal = (conversation, e) => {
-    e.stopPropagation();
-    setSelectedConversation(conversation);
-    setNewTitle(conversation.title || '');
-    setShowRenameModal(true);
   };
 
   const openDeleteModal = (conversation, e) => {
@@ -163,11 +160,19 @@ export default function ConversationSidebar({
         </InputGroup>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <Alert variant="danger" className="m-2 small" dismissible onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
       {/* Conversations List */}
       <div className="sidebar-content flex-grow-1 overflow-auto p-2">
         {loading ? (
           <div className="text-center py-5">
             <Spinner animation="border" size="sm" />
+            <p className="mt-2 small text-muted">Loading conversations...</p>
           </div>
         ) : conversations.length === 0 ? (
           <div className="text-center py-5 text-muted">
@@ -183,6 +188,7 @@ export default function ConversationSidebar({
                 key={conv.id}
                 active={conv.id === currentConversationId}
                 onClick={() => {
+                  console.log('[SIDEBAR] Conversation clicked:', conv.id, conv.title);
                   onConversationSelect?.(conv);
                   if (isMobile) onHide();
                 }}
@@ -211,16 +217,8 @@ export default function ConversationSidebar({
                     )}
                   </div>
                   
-                  <div className="conversation-actions d-flex gap-1">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-1 text-muted"
-                      onClick={(e) => openRenameModal(conv, e)}
-                      title="Rename"
-                    >
-                      <IconifyIcon icon="ri:edit-line" style={{ fontSize: '0.9rem' }} />
-                    </Button>
+                  {/* Delete button only */}
+                  <div className="conversation-actions">
                     <Button
                       variant="link"
                       size="sm"
@@ -253,44 +251,13 @@ export default function ConversationSidebar({
           </Offcanvas.Body>
         </Offcanvas>
 
-        {/* Modals */}
-        <RenameModal />
+        {/* Delete Modal */}
         <DeleteModal />
       </>
     );
   }
 
   // Desktop: Regular sidebar
-  const RenameModal = () => (
-    <Modal show={showRenameModal} onHide={() => setShowRenameModal(false)} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Rename Conversation</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form.Group>
-          <Form.Label>New Title</Form.Label>
-          <Form.Control
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Enter new title..."
-            autoFocus
-            onKeyPress={(e) => e.key === 'Enter' && handleRename()}
-          />
-        </Form.Group>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={() => setShowRenameModal(false)}>
-          Cancel
-        </Button>
-        <Button variant="primary" onClick={handleRename} disabled={!newTitle.trim()}>
-          <IconifyIcon icon="ri:save-line" className="me-2" />
-          Save
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
-
   const DeleteModal = () => (
     <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
       <Modal.Header closeButton>
@@ -321,8 +288,7 @@ export default function ConversationSidebar({
         <SidebarContent />
       </div>
       
-      {/* Modals */}
-      <RenameModal />
+      {/* Delete Modal */}
       <DeleteModal />
     </>
   );

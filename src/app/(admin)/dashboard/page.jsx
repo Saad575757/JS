@@ -2370,26 +2370,57 @@ if (response.assignment && typeof response.assignment === 'object') {
   // Conversation handlers
   const handleConversationSelect = async (conversation) => {
     try {
-      console.log('[CONVERSATION] Loading conversation:', conversation.id);
+      console.log('[CONVERSATION] Loading conversation:', conversation.id, conversation.title);
+      setError(null);
+      setIsLoading(true);
+      
       const data = await getConversation(conversation.id);
+      console.log('[CONVERSATION] Data received:', data);
+      
+      // Handle different response formats
+      let conversationData = data.conversation || data;
+      let messagesData = conversationData.messages || data.messages || [];
+      
+      console.log('[CONVERSATION] Messages count:', messagesData.length);
       
       // Load messages from conversation
-      if (data.messages && Array.isArray(data.messages)) {
-        const loadedMessages = data.messages.map(msg => ({
-          sender: msg.role === 'user' ? 'user' : 'bot',
-          text: msg.content,
-          data: msg.data,
-          time: new Date(msg.created_at),
-          type: msg.type || 'text'
-        }));
+      if (messagesData && Array.isArray(messagesData) && messagesData.length > 0) {
+        const loadedMessages = messagesData.map(msg => {
+          console.log('[CONVERSATION] Processing message:', msg.id, msg.role, msg.content?.substring(0, 50));
+          return {
+            sender: msg.role === 'user' ? 'user' : 'bot',
+            text: msg.content,
+            data: msg.data ? (typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data) : undefined,
+            time: new Date(msg.created_at),
+            type: msg.type || 'text'
+          };
+        });
         setMessages(loadedMessages);
+        console.log('[CONVERSATION] Messages loaded successfully:', loadedMessages.length);
+      } else {
+        // Empty conversation - show welcome messages
+        console.log('[CONVERSATION] No messages found, showing welcome messages');
+        setMessages([
+          { sender: 'bot', text: "Hi, I am Classroom Assistant.", time: new Date() },
+          { sender: 'bot', text: "How can I help you today?", time: new Date() }
+        ]);
       }
       
       setConversationId(conversation.id);
       localStorage.setItem('conversationId', conversation.id);
+      
+      // Scroll to bottom after loading
+      setTimeout(scrollToBottom, 100);
     } catch (error) {
       console.error('[CONVERSATION] Failed to load:', error);
-      setError('Failed to load conversation');
+      console.error('[CONVERSATION] Error details:', error.message, error.stack);
+      setError(`Failed to load conversation: ${error.message}`);
+      
+      // Still switch to the conversation but keep current messages
+      setConversationId(conversation.id);
+      localStorage.setItem('conversationId', conversation.id);
+    } finally {
+      setIsLoading(false);
     }
   };
 
