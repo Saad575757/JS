@@ -776,10 +776,11 @@ const handleSubmit = async (e) => {
                       const aiData = await aiRes.json();
                       console.log('[AI RESPONSE]', aiData);
                       
-                      // 5. Add bot response
+                      // 5. Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
+                      const cleanedAiData = { ...aiData, awaitingFileUpload: false };
                       const botResponse = {
                         sender: 'bot',
-                        data: aiData,
+                        data: cleanedAiData,
                         time: new Date(),
                         type: 'structured'
                       };
@@ -1073,10 +1074,11 @@ const handleSubmit = async (e) => {
                         
                         const aiData = await aiRes.json();
                         
-                        // Add bot response
+                        // Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
+                        const cleanedAiData = { ...aiData, awaitingFileUpload: false };
                         const botResponse = {
                           sender: 'bot',
-                          data: aiData,
+                          data: cleanedAiData,
                           time: new Date(),
                           type: 'structured'
                         };
@@ -1285,10 +1287,11 @@ const handleSubmit = async (e) => {
                         
                         const aiData = await aiRes.json();
                         
-                        // Add bot response
+                        // Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
+                        const cleanedAiData = { ...aiData, awaitingFileUpload: false };
                         const botResponse = {
                           sender: 'bot',
-                          data: aiData,
+                          data: cleanedAiData,
                           time: new Date(),
                           type: 'structured'
                         };
