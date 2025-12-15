@@ -12,6 +12,8 @@ import {
   getAnnouncementsByCourse, createAnnouncement, deleteAnnouncement
 } from '@/lib/api/courses';
 import { getUserRole } from '@/lib/auth/tokenManager';
+import SubmissionModal from '@/components/SubmissionModal';
+import { getMySubmissionForAssignment } from '@/lib/api/submissions';
 
 export default function ClassDetailView_New({ classId, onBack }) {
   // State management
@@ -29,7 +31,9 @@ export default function ClassDetailView_New({ classId, onBack }) {
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showAssignmentDetailModal, setShowAssignmentDetailModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [assignmentSubmissions, setAssignmentSubmissions] = useState({}); // { assignmentId: submission }
   
   // Form states
   const [announcementData, setAnnouncementData] = useState({ title: '', content: '' });
@@ -56,7 +60,28 @@ export default function ClassDetailView_New({ classId, onBack }) {
       
       // Load assignments
       const assignmentsRes = await getAssignmentsByCourse(classId);
-      setAssignments(assignmentsRes.success ? assignmentsRes.assignments : assignmentsRes);
+      const assignmentsList = assignmentsRes.success ? assignmentsRes.assignments : assignmentsRes;
+      setAssignments(assignmentsList);
+      
+      // Load submission status for each assignment (students only)
+      const userRole = getUserRole();
+      if (userRole === 'student') {
+        const submissionStatuses = {};
+        await Promise.all(
+          assignmentsList.map(async (assignment) => {
+            try {
+              const submission = await getMySubmissionForAssignment(assignment.id);
+              if (submission && submission.id) {
+                submissionStatuses[assignment.id] = submission;
+              }
+            } catch (err) {
+              // No submission found - that's okay
+              console.log(`[CLASS] No submission for assignment ${assignment.id}`);
+            }
+          })
+        );
+        setAssignmentSubmissions(submissionStatuses);
+      }
       
       // Load announcements
       const announcementsRes = await getAnnouncementsByCourse(classId);
@@ -394,11 +419,15 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <th>Max Points</th>
                         <th>Attachments</th>
                         <th>Teacher</th>
+                        {!isTeacher && <th>Submission</th>}
                         {isTeacher && <th>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {assignments.map(assignment => (
+                      {assignments.map(assignment => {
+                        const hasSubmission = assignmentSubmissions[assignment.id];
+                        
+                        return (
                         <tr 
                           key={assignment.id} 
                           style={{ cursor: 'pointer' }}
@@ -448,6 +477,32 @@ export default function ClassDetailView_New({ classId, onBack }) {
                             )}
                           </td>
                           <td>{assignment.teacher_name}</td>
+                          
+                          {/* Student: Submission Status/Button */}
+                          {!isTeacher && (
+                            <td onClick={(e) => e.stopPropagation()}>
+                              {hasSubmission ? (
+                                <Badge bg="success">
+                                  <IconifyIcon icon="ri:checkbox-circle-line" className="me-1" />
+                                  Submitted
+                                </Badge>
+                              ) : (
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedAssignment(assignment);
+                                    setShowSubmissionModal(true);
+                                  }}
+                                >
+                                  <IconifyIcon icon="ri:file-upload-line" className="me-1" />
+                                  Submit
+                                </Button>
+                              )}
+                            </td>
+                          )}
+                          
+                          {/* Teacher: Delete Action */}
                           {isTeacher && (
                             <td onClick={(e) => e.stopPropagation()}>
                               <Button 
@@ -460,7 +515,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
                             </td>
                           )}
                         </tr>
-                      ))}
+                      );})}
                     </tbody>
                   </Table>
                 )}
@@ -758,6 +813,27 @@ export default function ClassDetailView_New({ classId, onBack }) {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Submission Modal (for students) */}
+      {!isTeacher && (
+        <SubmissionModal
+          show={showSubmissionModal}
+          onHide={() => setShowSubmissionModal(false)}
+          assignment={selectedAssignment}
+          onSubmitSuccess={(submission) => {
+            console.log('[CLASS] Submission successful:', submission);
+            // Update submission status
+            if (selectedAssignment) {
+              setAssignmentSubmissions(prev => ({
+                ...prev,
+                [selectedAssignment.id]: submission
+              }));
+            }
+            setSuccess('Assignment submitted successfully!');
+            setTimeout(() => setSuccess(null), 3000);
+          }}
+        />
+      )}
     </Container>
   );
 }
