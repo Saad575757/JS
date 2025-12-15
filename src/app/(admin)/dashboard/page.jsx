@@ -54,6 +54,8 @@ import './chat-responsive.css';
 import { uploadFile, createAssignment } from '@/lib/api/courses';
 import { v4 as uuidv4 } from 'uuid'; // install with: npm install uuid
 import { getToken } from '@/lib/auth/tokenManager';
+import ConversationSidebar from '@/components/ConversationSidebar';
+import { getConversation } from '@/lib/api/conversations';
 // Prompt Suggestions Component (defined in the same file)
 function PromptSuggestions({ onPromptSelect, isLoading, role }) {
   // Role-specific prompt lists
@@ -264,6 +266,8 @@ export default function ChatInput() {
   ]);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false); // For mobile
+  const [isMobile, setIsMobile] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [voice, setVoice] = useState(null);
   const [voices, setVoices] = useState([]);
@@ -2353,16 +2357,101 @@ if (response.assignment && typeof response.assignment === 'object') {
     }
   };
 
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 992);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Conversation handlers
+  const handleConversationSelect = async (conversation) => {
+    try {
+      console.log('[CONVERSATION] Loading conversation:', conversation.id);
+      const data = await getConversation(conversation.id);
+      
+      // Load messages from conversation
+      if (data.messages && Array.isArray(data.messages)) {
+        const loadedMessages = data.messages.map(msg => ({
+          sender: msg.role === 'user' ? 'user' : 'bot',
+          text: msg.content,
+          data: msg.data,
+          time: new Date(msg.created_at),
+          type: msg.type || 'text'
+        }));
+        setMessages(loadedMessages);
+      }
+      
+      setConversationId(conversation.id);
+      localStorage.setItem('conversationId', conversation.id);
+    } catch (error) {
+      console.error('[CONVERSATION] Failed to load:', error);
+      setError('Failed to load conversation');
+    }
+  };
+
+  const handleNewConversation = (conversation) => {
+    // Reset to new conversation
+    setMessages([
+      { sender: 'bot', text: "Hi, I am Classroom Assistant.", time: new Date() },
+      { sender: 'bot', text: "How can I help you today?", time: new Date() }
+    ]);
+    setConversationId(conversation.id);
+    localStorage.setItem('conversationId', conversation.id);
+    setMessage('');
+    setPendingAttachment(null);
+  };
+
   return (
-    <Card className="border-0 bg-body chat-responsive-card">
-      <CardBody className="p-0 d-flex flex-column chat-responsive-body">
-        <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
-          <div>
-            <h5 className="mb-0">AI Classroom Chat</h5>
-            {conversationId && (
-              <small className="text-muted">Conversation ID: {conversationId}</small>
-            )}
-          </div>
+    <div className="d-flex h-100" style={{ height: '100vh', overflow: 'hidden' }}>
+      {/* Sidebar - Desktop */}
+      {!isMobile && (
+        <ConversationSidebar
+          currentConversationId={conversationId}
+          onConversationSelect={handleConversationSelect}
+          onNewConversation={handleNewConversation}
+          isMobile={false}
+        />
+      )}
+
+      {/* Sidebar - Mobile */}
+      {isMobile && (
+        <ConversationSidebar
+          currentConversationId={conversationId}
+          onConversationSelect={handleConversationSelect}
+          onNewConversation={handleNewConversation}
+          isMobile={true}
+          show={showSidebar}
+          onHide={() => setShowSidebar(false)}
+        />
+      )}
+
+      {/* Main Chat Area */}
+      <div className="flex-grow-1 d-flex flex-column" style={{ height: '100vh', overflow: 'hidden' }}>
+        <Card className="border-0 bg-body chat-responsive-card flex-grow-1">
+          <CardBody className="p-0 d-flex flex-column chat-responsive-body">
+            <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
+              <div className="d-flex align-items-center">
+                {/* Mobile menu button */}
+                {isMobile && (
+                  <Button
+                    variant="link"
+                    className="p-0 me-3"
+                    onClick={() => setShowSidebar(true)}
+                  >
+                    <IconifyIcon icon="ri:menu-line" style={{ fontSize: '1.5rem' }} />
+                  </Button>
+                )}
+                <div>
+                  <h5 className="mb-0">AI Classroom Chat</h5>
+                  {conversationId && (
+                    <small className="text-muted">Conversation ID: {conversationId}</small>
+                  )}
+                </div>
+              </div>
 
           <div className="d-flex align-items-center">
             {/* Language selector for speech recognition */}
@@ -2598,6 +2687,8 @@ if (response.assignment && typeof response.assignment === 'object') {
         </div>
       </CardBody>
     </Card>
+      </div>
+    </div>
   );
 }
 
