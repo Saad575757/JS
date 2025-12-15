@@ -776,15 +776,30 @@ const handleSubmit = async (e) => {
                       const aiData = await aiRes.json();
                       console.log('[AI RESPONSE]', aiData);
                       
-                      // 5. Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
-                      const cleanedAiData = { ...aiData, awaitingFileUpload: false };
-                      const botResponse = {
-                        sender: 'bot',
-                        data: cleanedAiData,
-                        time: new Date(),
-                        type: 'structured'
-                      };
-                      setMessages(prev => [...prev, botResponse]);
+                      // 5. Clear awaitingFileUpload from ALL previous messages and add new response
+                      setMessages(prev => {
+                        // Update all previous messages to remove awaitingFileUpload flag
+                        const updatedMessages = prev.map(msg => {
+                          if (msg.data && msg.data.awaitingFileUpload === true) {
+                            return {
+                              ...msg,
+                              data: { ...msg.data, awaitingFileUpload: false }
+                            };
+                          }
+                          return msg;
+                        });
+                        
+                        // Add new bot response with awaitingFileUpload explicitly set to false
+                        const cleanedAiData = { ...aiData, awaitingFileUpload: false };
+                        const botResponse = {
+                          sender: 'bot',
+                          data: cleanedAiData,
+                          time: new Date(),
+                          type: 'structured'
+                        };
+                        
+                        return [...updatedMessages, botResponse];
+                      });
                       
                       // 6. Clear pending attachment
                       setPendingAttachment(null);
@@ -1074,15 +1089,30 @@ const handleSubmit = async (e) => {
                         
                         const aiData = await aiRes.json();
                         
-                        // Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
-                        const cleanedAiData = { ...aiData, awaitingFileUpload: false };
-                        const botResponse = {
-                          sender: 'bot',
-                          data: cleanedAiData,
-                          time: new Date(),
-                          type: 'structured'
-                        };
-                        setMessages(prev => [...prev, botResponse]);
+                        // Clear awaitingFileUpload from ALL previous messages and add new response
+                        setMessages(prev => {
+                          // Update all previous messages to remove awaitingFileUpload flag
+                          const updatedMessages = prev.map(msg => {
+                            if (msg.data && msg.data.awaitingFileUpload === true) {
+                              return {
+                                ...msg,
+                                data: { ...msg.data, awaitingFileUpload: false }
+                              };
+                            }
+                            return msg;
+                          });
+                          
+                          // Add new bot response with awaitingFileUpload explicitly set to false
+                          const cleanedAiData = { ...aiData, awaitingFileUpload: false };
+                          const botResponse = {
+                            sender: 'bot',
+                            data: cleanedAiData,
+                            time: new Date(),
+                            type: 'structured'
+                          };
+                          
+                          return [...updatedMessages, botResponse];
+                        });
                         
                         // Clear pending attachment
                         setPendingAttachment(null);
@@ -1287,15 +1317,30 @@ const handleSubmit = async (e) => {
                         
                         const aiData = await aiRes.json();
                         
-                        // Add bot response (clear awaitingFileUpload flag to prevent re-rendering upload UI)
-                        const cleanedAiData = { ...aiData, awaitingFileUpload: false };
-                        const botResponse = {
-                          sender: 'bot',
-                          data: cleanedAiData,
-                          time: new Date(),
-                          type: 'structured'
-                        };
-                        setMessages(prev => [...prev, botResponse]);
+                        // Clear awaitingFileUpload from ALL previous messages and add new response
+                        setMessages(prev => {
+                          // Update all previous messages to remove awaitingFileUpload flag
+                          const updatedMessages = prev.map(msg => {
+                            if (msg.data && msg.data.awaitingFileUpload === true) {
+                              return {
+                                ...msg,
+                                data: { ...msg.data, awaitingFileUpload: false }
+                              };
+                            }
+                            return msg;
+                          });
+                          
+                          // Add new bot response with awaitingFileUpload explicitly set to false
+                          const cleanedAiData = { ...aiData, awaitingFileUpload: false };
+                          const botResponse = {
+                            sender: 'bot',
+                            data: cleanedAiData,
+                            time: new Date(),
+                            type: 'structured'
+                          };
+                          
+                          return [...updatedMessages, botResponse];
+                        });
                         
                         // Clear pending attachment
                         setPendingAttachment(null);
