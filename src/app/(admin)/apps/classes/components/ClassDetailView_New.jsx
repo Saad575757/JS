@@ -28,6 +28,8 @@ export default function ClassDetailView_New({ classId, onBack }) {
   // Modals state
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [showAssignmentDetailModal, setShowAssignmentDetailModal] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
   
   // Form states
   const [announcementData, setAnnouncementData] = useState({ title: '', content: '' });
@@ -390,13 +392,21 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <th>Title</th>
                         <th>Due Date</th>
                         <th>Max Points</th>
+                        <th>Attachments</th>
                         <th>Teacher</th>
                         {isTeacher && <th>Actions</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {assignments.map(assignment => (
-                        <tr key={assignment.id}>
+                        <tr 
+                          key={assignment.id} 
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            setSelectedAssignment(assignment);
+                            setShowAssignmentDetailModal(true);
+                          }}
+                        >
                           <td>
                             <div className="fw-bold">{assignment.title}</div>
                             <small className="text-muted">{assignment.description}</small>
@@ -405,9 +415,41 @@ export default function ClassDetailView_New({ classId, onBack }) {
                           <td>
                             <Badge bg="primary">{assignment.max_points}</Badge>
                           </td>
+                          <td onClick={(e) => e.stopPropagation()}>
+                            {assignment.attachments && assignment.attachments.length > 0 ? (
+                              <div>
+                                {assignment.attachments.map((file, idx) => (
+                                  <div key={idx} className="mb-2">
+                                    <a 
+                                      href={file.fullUrl || file.url} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-decoration-none d-flex align-items-center"
+                                    >
+                                      <IconifyIcon 
+                                        icon="ri:attachment-2" 
+                                        className="me-2 text-primary" 
+                                      />
+                                      <div>
+                                        <div className="text-primary">
+                                          {file.originalName || file.filename}
+                                        </div>
+                                        <small className="text-muted">
+                                          {file.size ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                                          {file.mimetype && ` • ${file.mimetype.split('/').pop()}`}
+                                        </small>
+                                      </div>
+                                    </a>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <small className="text-muted">No attachments</small>
+                            )}
+                          </td>
                           <td>{assignment.teacher_name}</td>
                           {isTeacher && (
-                            <td>
+                            <td onClick={(e) => e.stopPropagation()}>
                               <Button 
                                 variant="link" 
                                 className="text-danger p-0"
@@ -585,6 +627,136 @@ export default function ClassDetailView_New({ classId, onBack }) {
             </Button>
           </Modal.Footer>
         </Form>
+      </Modal>
+
+      {/* Assignment Detail Modal */}
+      <Modal 
+        show={showAssignmentDetailModal} 
+        onHide={() => setShowAssignmentDetailModal(false)} 
+        centered 
+        size="lg"
+      >
+        <Modal.Header closeButton className="bg-primary text-white">
+          <Modal.Title>
+            <IconifyIcon icon="ri:file-list-3-line" className="me-2" />
+            Assignment Details
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedAssignment && (
+            <>
+              <div className="mb-4">
+                <h5 className="mb-3">{selectedAssignment.title}</h5>
+                <p className="text-muted">{selectedAssignment.description}</p>
+              </div>
+
+              <Row className="mb-4">
+                <Col md={4}>
+                  <div className="mb-3">
+                    <small className="text-muted d-block">Due Date</small>
+                    <strong>{new Date(selectedAssignment.due_date).toLocaleString()}</strong>
+                  </div>
+                </Col>
+                <Col md={4}>
+                  <div className="mb-3">
+                    <small className="text-muted d-block">Max Points</small>
+                    <Badge bg="primary" className="fs-6">{selectedAssignment.max_points}</Badge>
+                  </div>
+                </Col>
+                <Col md={4}>
+                  <div className="mb-3">
+                    <small className="text-muted d-block">Teacher</small>
+                    <strong>{selectedAssignment.teacher_name}</strong>
+                  </div>
+                </Col>
+              </Row>
+
+              {/* Attachments Section */}
+              <div className="border-top pt-3">
+                <h6 className="mb-3">
+                  <IconifyIcon icon="ri:attachment-2" className="me-2" />
+                  Attachments ({selectedAssignment.attachments?.length || 0})
+                </h6>
+                
+                {selectedAssignment.attachments && selectedAssignment.attachments.length > 0 ? (
+                  <div>
+                    {selectedAssignment.attachments.map((file, idx) => (
+                      <Card key={idx} className="mb-3 border shadow-sm">
+                        <CardBody>
+                          <Row className="align-items-center">
+                            <Col md={8}>
+                              <div className="d-flex align-items-center">
+                                <div className="bg-primary text-white rounded p-2 me-3">
+                                  <IconifyIcon icon="ri:file-text-line" style={{ fontSize: '1.5rem' }} />
+                                </div>
+                                <div>
+                                  <h6 className="mb-1">{file.originalName || file.filename}</h6>
+                                  <div className="small text-muted">
+                                    <span className="me-3">
+                                      <IconifyIcon icon="ri:file-line" className="me-1" />
+                                      {file.size ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown size'}
+                                    </span>
+                                    {file.mimetype && (
+                                      <span>
+                                        <IconifyIcon icon="ri:file-type-line" className="me-1" />
+                                        {file.mimetype}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </Col>
+                            <Col md={4} className="text-end">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                href={file.fullUrl || file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <IconifyIcon icon="ri:download-2-line" className="me-1" />
+                                Download
+                              </Button>
+                            </Col>
+                          </Row>
+                          
+                          {/* Show full file details in a code block */}
+                          <div className="mt-3 pt-3 border-top">
+                            <small className="text-muted d-block mb-2">Full Response Data:</small>
+                            <pre className="bg-light p-3 rounded small" style={{ maxHeight: '200px', overflow: 'auto' }}>
+                              {JSON.stringify(file, null, 2)}
+                            </pre>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Alert variant="info">
+                    <IconifyIcon icon="ri:information-line" className="me-2" />
+                    No attachments for this assignment
+                  </Alert>
+                )}
+              </div>
+
+              {/* Full Assignment Response */}
+              <div className="border-top pt-3 mt-3">
+                <h6 className="mb-3">
+                  <IconifyIcon icon="ri:code-s-slash-line" className="me-2" />
+                  Full Assignment Response
+                </h6>
+                <pre className="bg-light p-3 rounded small" style={{ maxHeight: '300px', overflow: 'auto' }}>
+                  {JSON.stringify(selectedAssignment, null, 2)}
+                </pre>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowAssignmentDetailModal(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
       </Modal>
     </Container>
   );
