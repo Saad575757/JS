@@ -105,3 +105,28 @@ export const deleteSubmission = async (submissionId) => {
   });
 };
 
+/**
+ * Get all submissions for an assignment (Teachers only)
+ * @param {number} assignmentId - Assignment ID
+ * @returns {Promise<Object>} All submissions with details
+ */
+export const getAllSubmissionsForAssignment = async (assignmentId) => {
+  console.log('[API] Fetching all submissions for assignment:', assignmentId);
+  return apiCall(`/api/submissions/assignment/${assignmentId}/all`);
+};
+
+/**
+ * Grade a submission (Teachers only)
+ * @param {number} submissionId - Submission ID
+ * @param {number} grade - Grade value
+ * @param {string} feedback - Optional feedback
+ * @returns {Promise<Object>} Updated submission
+ */
+export const gradeSubmission = async (submissionId, grade, feedback = '') => {
+  console.log('[API] Grading submission:', submissionId, 'Grade:', grade);
+  return apiCall(`/api/submissions/${submissionId}/grade`, {
+    method: 'POST',
+    body: JSON.stringify({ grade, feedback }),
+  });
+};
+

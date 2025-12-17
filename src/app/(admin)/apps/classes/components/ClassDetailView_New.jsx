@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/courses';
 import { getUserRole } from '@/lib/auth/tokenManager';
 import SubmissionModal from '@/components/SubmissionModal';
+import SubmissionDetailsModal from '@/components/SubmissionDetailsModal';
 import { getMySubmissionForAssignment } from '@/lib/api/submissions';
 
 export default function ClassDetailView_New({ classId, onBack }) {
@@ -32,6 +33,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showAssignmentDetailModal, setShowAssignmentDetailModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [showSubmissionDetailsModal, setShowSubmissionDetailsModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [assignmentSubmissions, setAssignmentSubmissions] = useState({}); // { assignmentId: submission }
   
@@ -418,6 +420,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
                         <th>Attachments</th>
                         <th>Teacher</th>
                         {!isTeacher && <th>Submission</th>}
+                        {isTeacher && <th>Submissions</th>}
                         {isTeacher && <th>Actions</th>}
                       </tr>
                     </thead>
@@ -506,6 +509,23 @@ export default function ClassDetailView_New({ classId, onBack }) {
                                   Submit
                                 </Button>
                               )}
+                            </td>
+                          )}
+                          
+                          {/* Teacher: View Submissions */}
+                          {isTeacher && (
+                            <td onClick={(e) => e.stopPropagation()}>
+                              <Button
+                                variant="info"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedAssignment(assignment);
+                                  setShowSubmissionDetailsModal(true);
+                                }}
+                              >
+                                <IconifyIcon icon="ri:file-list-line" className="me-1" />
+                                {assignment.submissionCount || 0} Submissions
+                              </Button>
                             </td>
                           )}
                           
@@ -863,6 +883,15 @@ export default function ClassDetailView_New({ classId, onBack }) {
             setSuccess('Assignment submitted successfully!');
             setTimeout(() => setSuccess(null), 3000);
           }}
+        />
+      )}
+
+      {/* Submission Details Modal (for teachers) */}
+      {isTeacher && (
+        <SubmissionDetailsModal
+          show={showSubmissionDetailsModal}
+          onHide={() => setShowSubmissionDetailsModal(false)}
+          assignment={selectedAssignment}
         />
       )}
     </Container>
