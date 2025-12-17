@@ -44,31 +44,6 @@ export default function ClassDetailView_New({ classId, onBack }) {
     maxPoints: 100
   });
 
-  // Load submission statuses for all assignments
-  const loadSubmissionStatuses = async (assignmentsList = assignments) => {
-    const submissionStatuses = {};
-    console.log('[CLASS] Loading submission statuses for', assignmentsList.length, 'assignments');
-    
-    await Promise.all(
-      assignmentsList.map(async (assignment) => {
-        try {
-          const submission = await getMySubmissionForAssignment(assignment.id);
-          console.log('[CLASS] Submission found for assignment', assignment.id, ':', submission);
-          
-          if (submission && (submission.id || submission.submission)) {
-            submissionStatuses[assignment.id] = submission.submission || submission;
-          }
-        } catch (err) {
-          // No submission found - that's okay
-          console.log(`[CLASS] No submission for assignment ${assignment.id}`);
-        }
-      })
-    );
-    
-    console.log('[CLASS] Loaded submission statuses:', submissionStatuses);
-    setAssignmentSubmissions(submissionStatuses);
-  };
-
   // Load all data
   const loadClassData = async () => {
     try {
@@ -83,16 +58,28 @@ export default function ClassDetailView_New({ classId, onBack }) {
       const studentsRes = await getCourseStudents(classId);
       setStudents(studentsRes.success ? studentsRes.students : studentsRes);
       
-      // Load assignments
+      // Load assignments (now includes submission status from backend!)
       const assignmentsRes = await getAssignmentsByCourse(classId);
       const assignmentsList = assignmentsRes.success ? assignmentsRes.assignments : assignmentsRes;
-      setAssignments(assignmentsList);
       
-      // Load submission status for each assignment (students only)
+      console.log('[CLASS] Assignments loaded:', assignmentsList);
+      
+      // For students: extract submission status from assignments
       const userRole = getUserRole();
       if (userRole === 'student') {
-        await loadSubmissionStatuses(assignmentsList);
+        const submissionStatuses = {};
+        assignmentsList.forEach(assignment => {
+          // Backend now provides hasSubmitted and mySubmission fields
+          if (assignment.hasSubmitted && assignment.mySubmission) {
+            submissionStatuses[assignment.id] = assignment.mySubmission;
+            console.log('[CLASS] Found submission for assignment', assignment.id, ':', assignment.mySubmission);
+          }
+        });
+        console.log('[CLASS] Submission statuses:', submissionStatuses);
+        setAssignmentSubmissions(submissionStatuses);
       }
+      
+      setAssignments(assignmentsList);
       
       // Load announcements
       const announcementsRes = await getAnnouncementsByCourse(classId);
@@ -436,7 +423,9 @@ export default function ClassDetailView_New({ classId, onBack }) {
                     </thead>
                     <tbody>
                       {assignments.map(assignment => {
-                        const hasSubmission = assignmentSubmissions[assignment.id];
+                        // Check submission status from backend response OR from state
+                        const hasSubmission = assignment.hasSubmitted || assignmentSubmissions[assignment.id];
+                        const submissionData = assignment.mySubmission || assignmentSubmissions[assignment.id];
                         
                         return (
                         <tr 
@@ -493,10 +482,17 @@ export default function ClassDetailView_New({ classId, onBack }) {
                           {!isTeacher && (
                             <td onClick={(e) => e.stopPropagation()}>
                               {hasSubmission ? (
-                                <Badge bg="success">
-                                  <IconifyIcon icon="ri:checkbox-circle-line" className="me-1" />
-                                  Submitted
-                                </Badge>
+                                <div>
+                                  <Badge bg="success" className="d-flex align-items-center justify-content-center">
+                                    <IconifyIcon icon="ri:checkbox-circle-line" className="me-1" />
+                                    Submitted
+                                  </Badge>
+                                  {submissionData?.grade !== null && submissionData?.grade !== undefined && (
+                                    <Badge bg="primary" className="mt-1">
+                                      Grade: {submissionData.grade}
+                                    </Badge>
+                                  )}
+                                </div>
                               ) : (
                                 <Button
                                   variant="primary"
@@ -717,24 +713,51 @@ export default function ClassDetailView_New({ classId, onBack }) {
               </div>
 
               <Row className="mb-4">
-                <Col md={4}>
+                <Col md={3}>
                   <div className="mb-3">
                     <small className="text-muted d-block">Due Date</small>
                     <strong>{new Date(selectedAssignment.due_date).toLocaleString()}</strong>
                   </div>
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
                   <div className="mb-3">
                     <small className="text-muted d-block">Max Points</small>
                     <Badge bg="primary" className="fs-6">{selectedAssignment.max_points}</Badge>
                   </div>
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
                   <div className="mb-3">
                     <small className="text-muted d-block">Teacher</small>
                     <strong>{selectedAssignment.teacher_name}</strong>
                   </div>
                 </Col>
+                {isTeacher && selectedAssignment.submissionCount !== undefined && (
+                  <Col md={3}>
+                    <div className="mb-3">
+                      <small className="text-muted d-block">Submissions</small>
+                      <Badge bg="info" className="fs-6">
+                        <IconifyIcon icon="ri:file-list-line" className="me-1" />
+                        {selectedAssignment.submissionCount}
+                      </Badge>
+                    </div>
+                  </Col>
+                )}
+                {!isTeacher && selectedAssignment.hasSubmitted && (
+                  <Col md={3}>
+                    <div className="mb-3">
+                      <small className="text-muted d-block">Your Status</small>
+                      <Badge bg="success" className="fs-6">
+                        <IconifyIcon icon="ri:checkbox-circle-line" className="me-1" />
+                        Submitted
+                      </Badge>
+                      {selectedAssignment.mySubmission?.grade !== null && selectedAssignment.mySubmission?.grade !== undefined && (
+                        <div className="mt-1">
+                          <Badge bg="primary">Grade: {selectedAssignment.mySubmission.grade}</Badge>
+                        </div>
+                      )}
+                    </div>
+                  </Col>
+                )}
               </Row>
 
               {/* Attachments Section */}
@@ -834,8 +857,8 @@ export default function ClassDetailView_New({ classId, onBack }) {
           onSubmitSuccess={async (submission) => {
             console.log('[CLASS] Submission successful:', submission);
             
-            // Reload all submission statuses to ensure we have the latest data
-            await loadSubmissionStatuses(assignments);
+            // Reload class data to get updated submission statuses
+            await loadClassData();
             
             setSuccess('Assignment submitted successfully!');
             setTimeout(() => setSuccess(null), 3000);
