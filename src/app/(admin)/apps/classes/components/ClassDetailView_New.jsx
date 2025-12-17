@@ -14,6 +14,8 @@ import {
 import { getUserRole } from '@/lib/auth/tokenManager';
 import SubmissionModal from '@/components/SubmissionModal';
 import SubmissionDetailsModal from '@/components/SubmissionDetailsModal';
+import AIGradingSettings from '@/components/AIGradingSettings';
+import PendingAIGrades from '@/components/PendingAIGrades';
 import { getMySubmissionForAssignment } from '@/lib/api/submissions';
 
 export default function ClassDetailView_New({ classId, onBack }) {
@@ -34,6 +36,8 @@ export default function ClassDetailView_New({ classId, onBack }) {
   const [showAssignmentDetailModal, setShowAssignmentDetailModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [showSubmissionDetailsModal, setShowSubmissionDetailsModal] = useState(false);
+  const [showAIGradingSettings, setShowAIGradingSettings] = useState(false);
+  const [showPendingAIGrades, setShowPendingAIGrades] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [assignmentSubmissions, setAssignmentSubmissions] = useState({}); // { assignmentId: submission }
   
@@ -384,12 +388,24 @@ export default function ClassDetailView_New({ classId, onBack }) {
                     <IconifyIcon icon="ri:file-list-3-line" className="me-2" />
                     Assignments
                   </h4>
-                  {isTeacher && (
-                    <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
-                      <IconifyIcon icon="ri:add-line" className="me-2" />
-                      Create Assignment
-                    </Button>
-                  )}
+                  <div className="d-flex gap-2">
+                    {isTeacher && (
+                      <>
+                        <Button 
+                          variant="outline-info" 
+                          size="sm"
+                          onClick={() => setShowPendingAIGrades(true)}
+                        >
+                          <IconifyIcon icon="ri:robot-2-line" className="me-2" />
+                          Pending AI Grades
+                        </Button>
+                        <Button variant="primary" onClick={() => setShowAssignmentModal(true)}>
+                          <IconifyIcon icon="ri:add-line" className="me-2" />
+                          Create Assignment
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {assignments.length === 0 ? (
@@ -524,21 +540,35 @@ export default function ClassDetailView_New({ classId, onBack }) {
                                 }}
                               >
                                 <IconifyIcon icon="ri:file-list-line" className="me-1" />
-                                {assignment.submissionCount || 0} Submissions
+                                {assignment.submissionCount || 0}
                               </Button>
                             </td>
                           )}
                           
-                          {/* Teacher: Delete Action */}
+                          {/* Teacher: AI Settings & Delete Action */}
                           {isTeacher && (
                             <td onClick={(e) => e.stopPropagation()}>
-                              <Button 
-                                variant="link" 
-                                className="text-danger p-0"
-                                onClick={() => handleDeleteAssignment(assignment.id)}
-                              >
-                                <IconifyIcon icon="ri:delete-bin-line" />
-                              </Button>
+                              <div className="d-flex gap-1">
+                                <Button 
+                                  variant="link" 
+                                  className="text-primary p-0"
+                                  onClick={() => {
+                                    setSelectedAssignment(assignment);
+                                    setShowAIGradingSettings(true);
+                                  }}
+                                  title="AI Grading Settings"
+                                >
+                                  <IconifyIcon icon="ri:robot-line" />
+                                </Button>
+                                <Button 
+                                  variant="link" 
+                                  className="text-danger p-0"
+                                  onClick={() => handleDeleteAssignment(assignment.id)}
+                                  title="Delete Assignment"
+                                >
+                                  <IconifyIcon icon="ri:delete-bin-line" />
+                                </Button>
+                              </div>
                             </td>
                           )}
                         </tr>
@@ -892,6 +922,32 @@ export default function ClassDetailView_New({ classId, onBack }) {
           show={showSubmissionDetailsModal}
           onHide={() => setShowSubmissionDetailsModal(false)}
           assignment={selectedAssignment}
+        />
+      )}
+
+      {/* AI Grading Settings Modal (for teachers) */}
+      {isTeacher && (
+        <AIGradingSettings
+          show={showAIGradingSettings}
+          onHide={() => setShowAIGradingSettings(false)}
+          assignment={selectedAssignment}
+          onSettingsUpdated={(settings) => {
+            console.log('[CLASS] AI grading settings updated:', settings);
+            setSuccess(`AI grading ${settings.enabled ? 'enabled' : 'disabled'} successfully!`);
+            setTimeout(() => setSuccess(null), 3000);
+          }}
+        />
+      )}
+
+      {/* Pending AI Grades Modal (for teachers) */}
+      {isTeacher && (
+        <PendingAIGrades
+          show={showPendingAIGrades}
+          onHide={() => setShowPendingAIGrades(false)}
+          onGradesProcessed={() => {
+            // Reload class data to update submission counts
+            loadClassData();
+          }}
         />
       )}
     </Container>

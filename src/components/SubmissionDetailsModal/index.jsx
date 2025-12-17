@@ -6,6 +6,7 @@ import {
 } from 'react-bootstrap';
 import IconifyIcon from '@/components/wrappers/IconifyIcon';
 import { getAllSubmissionsForAssignment, gradeSubmission } from '@/lib/api/submissions';
+import AIGradingButton from './AIGradingButton';
 
 export default function SubmissionDetailsModal({ 
   show, 
@@ -348,23 +349,31 @@ export default function SubmissionDetailsModal({
                           />
                         </Form.Group>
 
-                        <Button 
-                          type="submit" 
-                          variant="primary"
-                          disabled={grading[submission.id]}
-                        >
-                          {grading[submission.id] ? (
-                            <>
-                              <Spinner animation="border" size="sm" className="me-2" />
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <IconifyIcon icon="ri:save-line" className="me-2" />
-                              Save Grade
-                            </>
-                          )}
-                        </Button>
+                        <div className="d-flex gap-2 align-items-center">
+                          <Button 
+                            type="submit" 
+                            variant="primary"
+                            disabled={grading[submission.id]}
+                          >
+                            {grading[submission.id] ? (
+                              <>
+                                <Spinner animation="border" size="sm" className="me-2" />
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <IconifyIcon icon="ri:save-line" className="me-2" />
+                                Save Grade
+                              </>
+                            )}
+                          </Button>
+                          
+                          {/* AI Grading Button */}
+                          <AIGradingButton 
+                            submission={submission}
+                            onGradingComplete={() => loadSubmissions()}
+                          />
+                        </div>
                       </Form>
                     </div>
                   </Card.Body>
