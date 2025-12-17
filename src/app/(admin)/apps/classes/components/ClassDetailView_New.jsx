@@ -14,7 +14,7 @@ import {
 import { getUserRole } from '@/lib/auth/tokenManager';
 import SubmissionModal from '@/components/SubmissionModal';
 import SubmissionDetailsModal from '@/components/SubmissionDetailsModal';
-import AIGradingSettings from '@/components/AIGradingSettings';
+import GlobalAISettings from '@/components/GlobalAISettings';
 import PendingAIGrades from '@/components/PendingAIGrades';
 import { getMySubmissionForAssignment } from '@/lib/api/submissions';
 
@@ -36,7 +36,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
   const [showAssignmentDetailModal, setShowAssignmentDetailModal] = useState(false);
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [showSubmissionDetailsModal, setShowSubmissionDetailsModal] = useState(false);
-  const [showAIGradingSettings, setShowAIGradingSettings] = useState(false);
+  const [showGlobalAISettings, setShowGlobalAISettings] = useState(false);
   const [showPendingAIGrades, setShowPendingAIGrades] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [assignmentSubmissions, setAssignmentSubmissions] = useState({}); // { assignmentId: submission }
@@ -392,6 +392,14 @@ export default function ClassDetailView_New({ classId, onBack }) {
                     {isTeacher && (
                       <>
                         <Button 
+                          variant="outline-primary" 
+                          size="sm"
+                          onClick={() => setShowGlobalAISettings(true)}
+                        >
+                          <IconifyIcon icon="ri:robot-line" className="me-2" />
+                          AI Settings
+                        </Button>
+                        <Button 
                           variant="outline-info" 
                           size="sm"
                           onClick={() => setShowPendingAIGrades(true)}
@@ -545,30 +553,17 @@ export default function ClassDetailView_New({ classId, onBack }) {
                             </td>
                           )}
                           
-                          {/* Teacher: AI Settings & Delete Action */}
+                          {/* Teacher: Delete Action */}
                           {isTeacher && (
                             <td onClick={(e) => e.stopPropagation()}>
-                              <div className="d-flex gap-1">
-                                <Button 
-                                  variant="link" 
-                                  className="text-primary p-0"
-                                  onClick={() => {
-                                    setSelectedAssignment(assignment);
-                                    setShowAIGradingSettings(true);
-                                  }}
-                                  title="AI Grading Settings"
-                                >
-                                  <IconifyIcon icon="ri:robot-line" />
-                                </Button>
-                                <Button 
-                                  variant="link" 
-                                  className="text-danger p-0"
-                                  onClick={() => handleDeleteAssignment(assignment.id)}
-                                  title="Delete Assignment"
-                                >
-                                  <IconifyIcon icon="ri:delete-bin-line" />
-                                </Button>
-                              </div>
+                              <Button 
+                                variant="link" 
+                                className="text-danger p-0"
+                                onClick={() => handleDeleteAssignment(assignment.id)}
+                                title="Delete Assignment"
+                              >
+                                <IconifyIcon icon="ri:delete-bin-line" />
+                              </Button>
                             </td>
                           )}
                         </tr>
@@ -925,15 +920,14 @@ export default function ClassDetailView_New({ classId, onBack }) {
         />
       )}
 
-      {/* AI Grading Settings Modal (for teachers) */}
+      {/* Global AI Grading Settings Modal (for teachers) */}
       {isTeacher && (
-        <AIGradingSettings
-          show={showAIGradingSettings}
-          onHide={() => setShowAIGradingSettings(false)}
-          assignment={selectedAssignment}
+        <GlobalAISettings
+          show={showGlobalAISettings}
+          onHide={() => setShowGlobalAISettings(false)}
           onSettingsUpdated={(settings) => {
-            console.log('[CLASS] AI grading settings updated:', settings);
-            setSuccess(`AI grading ${settings.enabled ? 'enabled' : 'disabled'} successfully!`);
+            console.log('[CLASS] Global AI grading settings updated:', settings);
+            setSuccess(`AI grading preferences ${settings.aiGradingEnabled ? 'enabled' : 'disabled'} globally!`);
             setTimeout(() => setSuccess(null), 3000);
           }}
         />
