@@ -65,7 +65,18 @@ export const getMySubmissions = async () => {
  */
 export const getMySubmissionForAssignment = async (assignmentId) => {
   console.log('[API] Fetching my submission for assignment:', assignmentId);
-  return apiCall(`/api/submissions/assignment/${assignmentId}`);
+  try {
+    const response = await apiCall(`/api/submissions/assignment/${assignmentId}`);
+    console.log('[API] Submission response for assignment', assignmentId, ':', response);
+    return response;
+  } catch (error) {
+    // If 404 or no submission found, return null instead of throwing
+    if (error.message.includes('404') || error.message.includes('not found')) {
+      console.log('[API] No submission found for assignment:', assignmentId);
+      return null;
+    }
+    throw error;
+  }
 };
 
 /**

@@ -44,6 +44,31 @@ export default function ClassDetailView_New({ classId, onBack }) {
     maxPoints: 100
   });
 
+  // Load submission statuses for all assignments
+  const loadSubmissionStatuses = async (assignmentsList = assignments) => {
+    const submissionStatuses = {};
+    console.log('[CLASS] Loading submission statuses for', assignmentsList.length, 'assignments');
+    
+    await Promise.all(
+      assignmentsList.map(async (assignment) => {
+        try {
+          const submission = await getMySubmissionForAssignment(assignment.id);
+          console.log('[CLASS] Submission found for assignment', assignment.id, ':', submission);
+          
+          if (submission && (submission.id || submission.submission)) {
+            submissionStatuses[assignment.id] = submission.submission || submission;
+          }
+        } catch (err) {
+          // No submission found - that's okay
+          console.log(`[CLASS] No submission for assignment ${assignment.id}`);
+        }
+      })
+    );
+    
+    console.log('[CLASS] Loaded submission statuses:', submissionStatuses);
+    setAssignmentSubmissions(submissionStatuses);
+  };
+
   // Load all data
   const loadClassData = async () => {
     try {
@@ -66,21 +91,7 @@ export default function ClassDetailView_New({ classId, onBack }) {
       // Load submission status for each assignment (students only)
       const userRole = getUserRole();
       if (userRole === 'student') {
-        const submissionStatuses = {};
-        await Promise.all(
-          assignmentsList.map(async (assignment) => {
-            try {
-              const submission = await getMySubmissionForAssignment(assignment.id);
-              if (submission && submission.id) {
-                submissionStatuses[assignment.id] = submission;
-              }
-            } catch (err) {
-              // No submission found - that's okay
-              console.log(`[CLASS] No submission for assignment ${assignment.id}`);
-            }
-          })
-        );
-        setAssignmentSubmissions(submissionStatuses);
+        await loadSubmissionStatuses(assignmentsList);
       }
       
       // Load announcements
@@ -820,15 +831,12 @@ export default function ClassDetailView_New({ classId, onBack }) {
           show={showSubmissionModal}
           onHide={() => setShowSubmissionModal(false)}
           assignment={selectedAssignment}
-          onSubmitSuccess={(submission) => {
+          onSubmitSuccess={async (submission) => {
             console.log('[CLASS] Submission successful:', submission);
-            // Update submission status
-            if (selectedAssignment) {
-              setAssignmentSubmissions(prev => ({
-                ...prev,
-                [selectedAssignment.id]: submission
-              }));
-            }
+            
+            // Reload all submission statuses to ensure we have the latest data
+            await loadSubmissionStatuses(assignments);
+            
             setSuccess('Assignment submitted successfully!');
             setTimeout(() => setSuccess(null), 3000);
           }}

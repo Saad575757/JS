@@ -91,7 +91,19 @@ export default function SubmissionModal({
       }, 1500);
     } catch (err) {
       console.error('[SUBMISSION] Submit error:', err);
-      setError(`Failed to submit assignment: ${err.message}`);
+      
+      // Check if error is "already submitted"
+      if (err.message.toLowerCase().includes('already submitted')) {
+        setError('This assignment has already been submitted. The page will refresh to show your submission.');
+        
+        // Still call success callback to update UI
+        setTimeout(() => {
+          onSubmitSuccess?.({ already_submitted: true });
+          handleClose();
+        }, 2000);
+      } else {
+        setError(`Failed to submit assignment: ${err.message}`);
+      }
     } finally {
       setSubmitting(false);
     }
