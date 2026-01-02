@@ -10,7 +10,24 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 export const getGradeByToken = async (token) => {
   console.log('[AI REVIEW] Fetching grade with token:', token);
   
-  const response = await fetch(`${API_BASE_URL}/api/ai-grading/grade/${token}`);
+  // Get JWT token if user is logged in (optional)
+  const authToken = getToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Include Authorization header if user is logged in
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+    console.log('[AI REVIEW] Including auth token from logged-in user');
+  } else {
+    console.log('[AI REVIEW] No auth token - using review token only');
+  }
+  
+  const response = await fetch(`${API_BASE_URL}/api/ai-grading/grade/${token}`, {
+    headers
+  });
   
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Failed to fetch grade' }));
@@ -30,11 +47,22 @@ export const getGradeByToken = async (token) => {
 export const approveGradeByToken = async (token) => {
   console.log('[AI REVIEW] Approving grade with token:', token);
   
+  // Get JWT token if user is logged in (optional)
+  const authToken = getToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Include Authorization header if user is logged in
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+    console.log('[AI REVIEW] Including auth token from logged-in user');
+  }
+  
   const response = await fetch(`${API_BASE_URL}/api/ai-grading/approve/${token}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
   });
   
   if (!response.ok) {
@@ -56,11 +84,22 @@ export const approveGradeByToken = async (token) => {
 export const rejectGradeByToken = async (token, reason) => {
   console.log('[AI REVIEW] Rejecting grade with token:', token);
   
+  // Get JWT token if user is logged in (optional)
+  const authToken = getToken();
+  
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Include Authorization header if user is logged in
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+    console.log('[AI REVIEW] Including auth token from logged-in user');
+  }
+  
   const response = await fetch(`${API_BASE_URL}/api/ai-grading/reject/${token}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ reason }),
   });
   
