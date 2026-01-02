@@ -30,8 +30,15 @@ export const getGradeByToken = async (token) => {
   });
   
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Failed to fetch grade' }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    // Handle 404 specifically
+    if (response.status === 404) {
+      throw new Error('404: Grade review endpoint not found. The backend API needs to implement GET /api/ai-grading/grade/:token');
+    }
+    
+    const error = await response.json().catch(() => ({ 
+      message: `Failed to fetch grade (HTTP ${response.status})` 
+    }));
+    throw new Error(error.message || error.error || `HTTP error! status: ${response.status}`);
   }
   
   const data = await response.json();

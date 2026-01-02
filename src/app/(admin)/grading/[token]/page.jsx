@@ -41,7 +41,16 @@ export default function GradeReviewPage() {
       setGradeData(data.grade);
     } catch (err) {
       console.error('[GRADE REVIEW] Load error:', err);
-      setError(`Failed to load grade: ${err.message}`);
+      
+      // Check if it's a 404 error (endpoint doesn't exist)
+      if (err.message.includes('404') || err.message.includes('Not Found')) {
+        setError(
+          'The AI grading review endpoint is not yet implemented on the backend. ' +
+          'Please implement the following endpoint: GET /api/ai-grading/grade/:token'
+        );
+      } else {
+        setError(`Failed to load grade: ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -124,15 +133,69 @@ export default function GradeReviewPage() {
   if (error && !gradeData) {
     return (
       <Container className="py-5">
-        <Alert variant="danger">
-          <IconifyIcon icon="ri:error-warning-line" className="me-2" />
-          <strong>Error:</strong> {error}
-        </Alert>
-        <div className="text-center mt-4">
-          <Button variant="primary" onClick={() => router.push('/dashboard')}>
-            Return to Dashboard
-          </Button>
-        </div>
+        <Card className="shadow-lg border-danger">
+          <Card.Header className="bg-danger text-white">
+            <h4 className="mb-0">
+              <IconifyIcon icon="ri:error-warning-line" className="me-2" />
+              Grade Review Endpoint Not Available
+            </h4>
+          </Card.Header>
+          <Card.Body>
+            <Alert variant="warning" className="mb-4">
+              <strong>Backend API Required:</strong> The grade review feature requires the following backend endpoint to be implemented:
+            </Alert>
+            
+            <Card className="mb-4 bg-light">
+              <Card.Body>
+                <code className="d-block mb-2">
+                  <strong>GET</strong> /api/ai-grading/grade/:token
+                </code>
+                <hr />
+                <div className="small">
+                  <strong>Expected Response:</strong>
+                  <pre className="mt-2" style={{ fontSize: '0.85rem' }}>{`{
+  "success": true,
+  "grade": {
+    "id": 1,
+    "proposed_grade": 85,
+    "ai_feedback": "Great work!...",
+    "ai_analysis": { "breakdown": [...] },
+    "assignment": { "title": "...", "max_points": 100 },
+    "course": { "name": "..." },
+    "student": { "name": "...", "email": "..." },
+    "submission": {
+      "submission_text": "...",
+      "attachments": [...],
+      "submitted_at": "..."
+    }
+  }
+}`}</pre>
+                </div>
+              </Card.Body>
+            </Card>
+
+            <Alert variant="info">
+              <IconifyIcon icon="ri:information-line" className="me-2" />
+              <strong>For Developers:</strong> See <code>docs/BACKEND_AI_REVIEW_AUTH.md</code> for complete implementation details.
+            </Alert>
+
+            <div className="mb-3">
+              <strong>Error Details:</strong>
+              <div className="text-muted small mt-1">{error}</div>
+            </div>
+
+            <div className="d-flex gap-2">
+              <Button variant="primary" onClick={() => router.push('/dashboard')}>
+                <IconifyIcon icon="ri:dashboard-line" className="me-2" />
+                Return to Dashboard
+              </Button>
+              <Button variant="outline-secondary" onClick={loadGradeData}>
+                <IconifyIcon icon="ri:refresh-line" className="me-2" />
+                Retry
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
       </Container>
     );
   }
@@ -166,8 +229,13 @@ export default function GradeReviewPage() {
   }
 
   const grade = gradeData;
-  const percentage = getGradePercentage(grade.proposed_grade, grade.assignment.max_points);
-  const gradeColor = getGradeColor(grade.proposed_grade, grade.assignment.max_points);
+  
+  // Handle both nested and flat response structures
+  const maxPoints = grade.assignment?.max_points || grade.assignment_max_points || 100;
+  const proposedGrade = parseFloat(grade.proposed_grade);
+  
+  const percentage = getGradePercentage(proposedGrade, maxPoints);
+  const gradeColor = getGradeColor(proposedGrade, maxPoints);
 
   return (
     <Container className="py-4">
@@ -204,27 +272,25 @@ export default function GradeReviewPage() {
                 <Col md={6}>
                   <div className="mb-3">
                     <small className="text-muted">Course</small>
-                    <div className="fw-bold">{grade.course.name}</div>
+                    <div className="fw-bold">{grade.course?.name || grade.course_name}</div>
                   </div>
                 </Col>
                 <Col md={6}>
                   <div className="mb-3">
                     <small className="text-muted">Assignment</small>
-                    <div className="fw-bold">{grade.assignment.title}</div>
+                    <div className="fw-bold">{grade.assignment?.title || grade.assignment_title}</div>
                   </div>
                 </Col>
                 <Col md={6}>
                   <div className="mb-3">
                     <small className="text-muted">Max Points</small>
-                    <div className="fw-bold">{grade.assignment.max_points} points</div>
+                    <div className="fw-bold">{maxPoints} points</div>
                   </div>
                 </Col>
                 <Col md={6}>
                   <div className="mb-3">
-                    <small className="text-muted">Due Date</small>
-                    <div className="fw-bold">
-                      {new Date(grade.assignment.due_date).toLocaleDateString()}
-                    </div>
+                    <small className="text-muted">Assignment ID</small>
+                    <div className="fw-bold">{grade.assignment?.id || grade.assignment_id}</div>
                   </div>
                 </Col>
               </Row>
@@ -244,20 +310,20 @@ export default function GradeReviewPage() {
                 <Col md={4}>
                   <div className="mb-3">
                     <small className="text-muted">Student Name</small>
-                    <div className="fw-bold">{grade.student.name}</div>
+                    <div className="fw-bold">{grade.student?.name || grade.student_name}</div>
                   </div>
                 </Col>
                 <Col md={4}>
                   <div className="mb-3">
                     <small className="text-muted">Email</small>
-                    <div className="fw-bold">{grade.student.email}</div>
+                    <div className="fw-bold">{grade.student?.email || grade.student_email}</div>
                   </div>
                 </Col>
                 <Col md={4}>
                   <div className="mb-3">
                     <small className="text-muted">Submitted</small>
                     <div className="fw-bold">
-                      {new Date(grade.submission.submitted_at).toLocaleString()}
+                      {new Date(grade.created_at).toLocaleString()}
                     </div>
                   </div>
                 </Col>
@@ -274,33 +340,34 @@ export default function GradeReviewPage() {
               </h5>
             </Card.Header>
             <Card.Body>
-              {grade.submission.submission_text ? (
+              {(grade.submission?.submission_text || grade.submission_text) ? (
                 <div className="mb-3">
                   <div className="p-3 bg-light rounded">
-                    {grade.submission.submission_text}
+                    {grade.submission?.submission_text || grade.submission_text}
                   </div>
                 </div>
               ) : (
                 <p className="text-muted">No text submission provided</p>
               )}
 
-              {grade.submission.attachments && grade.submission.attachments.length > 0 && (
+              {((grade.submission?.attachments || grade.submission_attachments) && 
+                (grade.submission?.attachments || grade.submission_attachments).length > 0) && (
                 <div>
                   <strong className="d-block mb-2">Attachments:</strong>
                   <div className="list-group">
-                    {grade.submission.attachments.map((file, idx) => (
+                    {(grade.submission?.attachments || grade.submission_attachments).map((file, idx) => (
                       <a
                         key={idx}
-                        href={file.url}
+                        href={file.url || file.fullUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                       >
                         <div>
                           <IconifyIcon icon="ri:file-line" className="me-2" />
-                          {file.originalName}
+                          {file.originalName || file.filename}
                         </div>
-                        <Badge bg="secondary">{(file.size / 1024).toFixed(1)} KB</Badge>
+                        <Badge bg="secondary">{((file.size || 0) / 1024).toFixed(1)} KB</Badge>
                       </a>
                     ))}
                   </div>
@@ -319,13 +386,13 @@ export default function GradeReviewPage() {
             </Card.Header>
             <Card.Body>
               <div className="p-3 bg-light rounded" style={{ whiteSpace: 'pre-wrap' }}>
-                {grade.ai_feedback || 'No feedback provided'}
+                {grade.proposed_feedback || grade.ai_feedback || 'No feedback provided'}
               </div>
             </Card.Body>
           </Card>
 
           {/* Grade Breakdown */}
-          {grade.ai_analysis?.breakdown && grade.ai_analysis.breakdown.length > 0 && (
+          {grade.ai_analysis?.breakdown && Array.isArray(grade.ai_analysis.breakdown) && grade.ai_analysis.breakdown.length > 0 && (
             <Card className="mb-4 shadow-sm">
               <Card.Header>
                 <h5 className="mb-0">
@@ -352,6 +419,47 @@ export default function GradeReviewPage() {
               </Card.Body>
             </Card>
           )}
+          
+          {/* AI Analysis Summary */}
+          {grade.ai_analysis && (
+            <Card className="mb-4 shadow-sm">
+              <Card.Header>
+                <h5 className="mb-0">
+                  <IconifyIcon icon="ri:brain-line" className="me-2" />
+                  AI Analysis
+                </h5>
+              </Card.Header>
+              <Card.Body>
+                {grade.ai_analysis.strengths && grade.ai_analysis.strengths.length > 0 && (
+                  <div className="mb-3">
+                    <strong className="text-success d-block mb-2">
+                      <IconifyIcon icon="ri:checkbox-circle-line" className="me-1" />
+                      Strengths:
+                    </strong>
+                    <ul className="mb-0">
+                      {grade.ai_analysis.strengths.map((strength, idx) => (
+                        <li key={idx}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {grade.ai_analysis.weaknesses && grade.ai_analysis.weaknesses.length > 0 && (
+                  <div>
+                    <strong className="text-warning d-block mb-2">
+                      <IconifyIcon icon="ri:error-warning-line" className="me-1" />
+                      Areas for Improvement:
+                    </strong>
+                    <ul className="mb-0">
+                      {grade.ai_analysis.weaknesses.map((weakness, idx) => (
+                        <li key={idx}>{weakness}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          )}
         </Col>
 
         {/* Right Column: Grade & Actions */}
@@ -367,10 +475,10 @@ export default function GradeReviewPage() {
               </Card.Header>
               <Card.Body className="text-center">
                 <div className="display-1 fw-bold mb-2" style={{ color: `var(--bs-${gradeColor})` }}>
-                  {grade.proposed_grade}
+                  {proposedGrade}
                 </div>
                 <div className="h4 text-muted mb-3">
-                  out of {grade.assignment.max_points} points
+                  out of {maxPoints} points
                 </div>
                 <div className="mb-3">
                   <Badge bg={gradeColor} className="p-2" style={{ fontSize: '1.2rem' }}>
